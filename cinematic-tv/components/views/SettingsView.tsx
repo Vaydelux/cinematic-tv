@@ -16,7 +16,6 @@ import {
   ShieldAlert,
   Sparkles,
   UserCircle,
-  Download,
 } from 'lucide-react';
 import type { User } from 'firebase/auth';
 import { useTheme } from '@/components/ThemeProvider';
@@ -26,7 +25,6 @@ import { getAllServers, getEnabledServers } from '@/lib/servers';
 import { getServerHealthSummary } from '@/lib/server-health';
 import { getUserSettings, saveUserSettings } from '@/lib/user-settings';
 import { ServerManagerModal } from '@/components/ServerManagerModal';
-import { usePwaStore } from '@/stores/usePwaStore';
 import type { AppSettings, ThemeId } from '@/lib/types';
 
 
@@ -143,10 +141,6 @@ export function SettingsView() {
   const [servers, setServers] = useState(getEnabledServers());
   const [accountLoading, setAccountLoading] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
-  
-  const canInstall = usePwaStore((s) => s.canInstall);
-  const isInstalled = usePwaStore((s) => s.isInstalled);
-  const triggerInstall = usePwaStore((s) => s.triggerInstall);
 
   const serverHealth = getServerHealthSummary();
   const totalServers = getAllServers().length;
@@ -441,33 +435,6 @@ export function SettingsView() {
             <StatusRow label="Firebase profile sync" value={health?.deploy?.firebaseConfigured ? 'Configured' : 'Local fallback'} good={health?.deploy?.firebaseConfigured} />
             <StatusRow label="Subtitles" value={health?.deploy?.optional.wyzieConfigured ? 'Wyzie key set' : 'Optional'} good={health?.deploy?.optional.wyzieConfigured} />
             <StatusRow label="Shared cache" value={health?.deploy?.optional.redisConfigured ? 'Configured' : 'Memory fallback'} good={health?.deploy?.optional.redisConfigured} />
-          </div>
-        </Panel>
-        <Panel icon={Download} eyebrow="PWA" title="App Installation">
-          <div className="flex flex-col gap-4">
-            <p className="text-sm leading-6 text-on-surface-variant">
-              {isInstalled
-                ? 'Cinematic TV is already installed on your device as a standalone application.'
-                : canInstall
-                ? 'Install Cinematic TV as a desktop or mobile application for a full-screen, native experience.'
-                : 'PWA installation is currently not available. Use a compatible browser (like Chrome, Edge, or Safari) and ensure the app is not already installed.'}
-            </p>
-            {isInstalled ? (
-              <div className="flex items-center justify-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 text-xs text-emerald-300">
-                <Check className="h-4 w-4 shrink-0" />
-                Successfully installed as standalone app!
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={triggerInstall}
-                disabled={!canInstall}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-contrast shadow-lg shadow-black/25 hover:brightness-110 disabled:opacity-50"
-              >
-                <Download className="h-4 w-4" />
-                Install Application
-              </button>
-            )}
           </div>
         </Panel>
 

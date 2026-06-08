@@ -8,7 +8,6 @@ import { AlertCircle, Download, Info, Play, RefreshCw, X } from 'lucide-react';
 import { ContentRail } from '@/components/ContentRail';
 import { useCatalogQuery } from '@/hooks/useCatalogQuery';
 import { useContinueWatching } from '@/hooks/useContinueWatching';
-import { usePwaStore } from '@/stores/usePwaStore';
 import { getWatchPath } from '@/lib/catalog/unifier';
 import { getUserSettings } from '@/lib/user-settings';
 import { MovieContext } from '@/lib/context';
@@ -45,11 +44,6 @@ export function HomeView() {
   const router = useRouter();
   const { setActiveMovie } = useContext(MovieContext);
   const [heroPreview, setHeroPreview] = useState<MediaItem | null>(null);
-  const [dismissed, setDismissed] = useState(false);
-  const canInstall = usePwaStore((s) => s.canInstall);
-  const isInstalled = usePwaStore((s) => s.isInstalled);
-  const triggerInstall = usePwaStore((s) => s.triggerInstall);
-
   const { items: cwItems } = useContinueWatching();
   const settings = getUserSettings();
   const homeQuery = new URLSearchParams({
@@ -243,36 +237,6 @@ export function HomeView() {
         className={`relative z-20 flex min-w-0 flex-col gap-5 ${displayHero ? 'mt-2 md:mt-4' : 'pt-10'}`}
         onMouseLeave={handleRailsLeave}
       >
-        {canInstall && !isInstalled && !dismissed && (
-          <div className="mx-4 md:mx-16 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 shadow-2xl backdrop-blur-xl transition-all duration-300">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-contrast shadow-lg shadow-primary/20">
-                <Download className="h-5 w-5" />
-              </span>
-              <div>
-                <h3 className="font-display text-sm font-bold text-on-surface">Install Cinematic TV</h3>
-                <p className="text-xs text-on-surface-variant">Add this dashboard to your home screen or desktop for a native, full-screen experience.</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={triggerInstall}
-                className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-contrast shadow-lg shadow-black/25 hover:brightness-110 active:scale-95 transition"
-              >
-                Install
-              </button>
-              <button
-                type="button"
-                onClick={() => setDismissed(true)}
-                className="rounded-lg p-2 text-on-surface-variant hover:bg-white/[0.08] hover:text-on-surface transition"
-                aria-label="Dismiss install banner"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        )}
 
         <ContentRail title="Continue Watching" items={cwMedia} prefix="cw-" showProgress onItemHover={handleItemHover} />
         <ContentRail title="Trending Today" items={data?.rails.trendingToday ?? []} prefix="today-" onItemHover={handleItemHover} />
