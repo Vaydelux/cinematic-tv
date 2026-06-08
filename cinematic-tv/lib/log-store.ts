@@ -49,12 +49,15 @@ export function getRecentLogs(limit = 100, level?: LogLevel): LogEntry[] {
 export function getLogStats() {
   const buf = getBuffer();
   const failoverEvents = buf.filter((e) => e.scope === 'player:failover');
+  const sandboxEvents = buf.filter((e) => e.scope === 'player:sandbox');
   return {
     total: buf.length,
     errors: buf.filter((e) => e.level === 'error').length,
     warns: buf.filter((e) => e.level === 'warn').length,
     failoverCount: failoverEvents.length,
+    sandboxBlockedCount: sandboxEvents.length,
     lastFailover: failoverEvents[failoverEvents.length - 1] ?? null,
+    lastSandboxBlock: sandboxEvents[sandboxEvents.length - 1] ?? null,
     lastError: [...buf].reverse().find((e) => e.level === 'error') ?? null,
   };
 }

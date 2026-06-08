@@ -18,8 +18,12 @@ export async function GET() {
       errors: logs.errors,
       warns: logs.warns,
       failoverCount: logs.failoverCount,
+      sandboxBlockedCount: logs.sandboxBlockedCount,
       lastFailover: logs.lastFailover
         ? { message: logs.lastFailover.message, meta: logs.lastFailover.meta, ts: logs.lastFailover.ts }
+        : null,
+      lastSandboxBlock: logs.lastSandboxBlock
+        ? { message: logs.lastSandboxBlock.message, meta: logs.lastSandboxBlock.meta, ts: logs.lastSandboxBlock.ts }
         : null,
       lastError: logs.lastError
         ? { message: logs.lastError.message, scope: logs.lastError.scope, ts: logs.lastError.ts }

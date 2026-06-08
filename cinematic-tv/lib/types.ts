@@ -7,6 +7,7 @@ export type ThemeId =
   | 'theme-emerald'
   | 'theme-obsidian';
 export type ColorMode = 'dark' | 'light';
+export type IframeSandboxMode = 'strict' | 'compatibility';
 
 export type MediaItem = {
   id: string;
@@ -77,6 +78,7 @@ export type AppSettings = {
   onboardingComplete: boolean;
   contentSource: 'all' | 'tmdb' | 'anilist';
   showAdult: boolean;
+  iframeSandboxMode: IframeSandboxMode;
 };
 
 export type Movie = MediaItem;

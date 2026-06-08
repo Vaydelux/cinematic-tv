@@ -67,7 +67,7 @@ type HealthState = {
     };
   };
   cache?: { redisConfigured?: boolean; redisConnected?: boolean };
-  logs?: { failoverCount?: number; errors?: number; warns?: number };
+  logs?: { failoverCount?: number; sandboxBlockedCount?: number; errors?: number; warns?: number };
 };
 
 function Panel({
@@ -383,6 +383,30 @@ export function SettingsView() {
               Manage servers
             </button>
           </div>
+          <div className="mb-5 rounded-xl border border-white/10 bg-white/[0.045] p-4">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold text-on-surface">Iframe protection</p>
+                <p className="mt-1 text-xs leading-5 text-on-surface-variant">
+                  Strict mode blocks popup and page-redirect permissions. Compatibility mode is only used for servers marked as compatibility-only.
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <OptionButton active={settings.iframeSandboxMode === 'strict'} onClick={() => update({ iframeSandboxMode: 'strict' })}>
+                  Strict
+                </OptionButton>
+                <OptionButton active={settings.iframeSandboxMode === 'compatibility'} onClick={() => update({ iframeSandboxMode: 'compatibility' })}>
+                  Compatibility
+                </OptionButton>
+              </div>
+            </div>
+            {settings.iframeSandboxMode === 'compatibility' && (
+              <div className="flex gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs leading-5 text-on-surface">
+                <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                Compatibility mode may allow third-party popup behavior on selected providers. Use strict mode for the safest client demo.
+              </div>
+            )}
+          </div>
           <div className="flex max-h-36 flex-wrap gap-2 overflow-y-auto pr-1 hide-scrollbar">
             {servers.map((server) => (
               <OptionButton key={server.id} active={settings.defaultServerId === server.id} onClick={() => update({ defaultServerId: server.id })}>
@@ -398,6 +422,7 @@ export function SettingsView() {
             <StatusRow label="AniList" value="Public API" good />
             <StatusRow label="Redis cache" value={health?.cache?.redisConfigured ? (health.cache.redisConnected ? 'Connected' : 'Configured') : 'In-memory'} good={health?.cache?.redisConnected} />
             <StatusRow label="Server failovers" value={String(health?.logs?.failoverCount ?? 0)} />
+            <StatusRow label="Protected iframe blocks" value={String(health?.logs?.sandboxBlockedCount ?? 0)} />
             {serverHealth.avgSuccessRate != null && <StatusRow label="Average server success" value={`${serverHealth.avgSuccessRate}%`} good={serverHealth.avgSuccessRate > 50} />}
           </div>
         </Panel>

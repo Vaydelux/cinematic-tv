@@ -49,7 +49,8 @@ service cloud.firestore {
         'preferredSubtitleLanguage',
         'onboardingComplete',
         'contentSource',
-        'showAdult'
+        'showAdult',
+        'iframeSandboxMode'
       ])
       && value.themeColor in ['theme-default', 'theme-crimson', 'theme-ocean', 'theme-emerald', 'theme-obsidian']
       && value.colorMode in ['dark', 'light']
@@ -63,7 +64,8 @@ service cloud.firestore {
       && optionalString(value.preferredSubtitleLanguage, 12)
       && value.onboardingComplete is bool
       && value.contentSource in ['all', 'tmdb', 'anilist']
-      && value.showAdult is bool;
+      && value.showAdult is bool
+      && value.iframeSandboxMode in ['strict', 'compatibility'];
     }
 
     function validStats(value) {

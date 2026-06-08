@@ -79,6 +79,20 @@ function getHiddenServerIds(): string[] {
   return getUserSettings().hiddenServerIds ?? [];
 }
 
+function getIframeSandboxMode() {
+  if (typeof window === 'undefined') return 'strict';
+  return getUserSettings().iframeSandboxMode;
+}
+
+function prioritizeSandboxCompatible(servers: EmbedServer[]): EmbedServer[] {
+  if (getIframeSandboxMode() !== 'strict') return servers;
+  return [...servers].sort((a, b) => {
+    const aCompatibilityOnly = a.sandboxPolicy === 'compatibility-only' ? 1 : 0;
+    const bCompatibilityOnly = b.sandboxPolicy === 'compatibility-only' ? 1 : 0;
+    return aCompatibilityOnly - bCompatibilityOnly;
+  });
+}
+
 export function getAllServers(): EmbedServer[] {
   return EMBED_SERVERS.filter((s) => s.enabled);
 }
@@ -87,7 +101,7 @@ export function getEnabledServers(): EmbedServer[] {
   const hidden = new Set(getHiddenServerIds());
   const enabled = EMBED_SERVERS.filter((s) => s.enabled);
   const visible = enabled.filter((s) => !hidden.has(s.id));
-  return visible.length ? visible : enabled.slice(0, 1);
+  return prioritizeSandboxCompatible(visible.length ? visible : enabled.slice(0, 1));
 }
 
 function sortByHealthAndOrder(servers: EmbedServer[], order: string[]): EmbedServer[] {
@@ -107,9 +121,12 @@ function sortByHealthAndOrder(servers: EmbedServer[], order: string[]): EmbedSer
 export function getOrderedServers(): EmbedServer[] {
   const enabled = getEnabledServers();
   const { serverOrder, defaultServerId } = getUserSettings();
-  const sorted = sortByHealthAndOrder(enabled, serverOrder);
+  const sorted = prioritizeSandboxCompatible(sortByHealthAndOrder(enabled, serverOrder));
   if (!defaultServerId) return sorted;
   const idx = sorted.findIndex((s) => s.id === defaultServerId);
+  if (getIframeSandboxMode() === 'strict' && sorted[idx]?.sandboxPolicy === 'compatibility-only') {
+    return sorted;
+  }
   if (idx <= 0) return sorted;
   const copy = [...sorted];
   const [preferred] = copy.splice(idx, 1);
@@ -130,7 +147,14 @@ export function getServerById(id: string): EmbedServer | undefined {
 export function getDefaultServerId(): string {
   const visible = getEnabledServers();
   const preferred = typeof window !== 'undefined' ? getUserSettings().defaultServerId : 'vidfast';
-  if (preferred && visible.some((s) => s.id === preferred)) return preferred;
+  if (preferred && visible.some((s) => s.id === preferred)) {
+    const server = visible.find((s) => s.id === preferred);
+    if (getIframeSandboxMode() !== 'strict' || server?.sandboxPolicy !== 'compatibility-only') {
+      return preferred;
+    }
+  }
+  const protectedServer = visible.find((s) => s.sandboxPolicy !== 'compatibility-only');
+  if (protectedServer) return protectedServer.id;
   return visible[0]?.id ?? 'vidfast';
 }
 

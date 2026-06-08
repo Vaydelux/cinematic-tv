@@ -1,3 +1,6 @@
+export type PlaybackMode = 'iframe' | 'direct' | 'proxy-direct';
+export type SandboxPolicy = 'strict' | 'compatibility-only' | 'none';
+
 export type EmbedServer = {
   id: string;
   name: string;
@@ -9,10 +12,20 @@ export type EmbedServer = {
   animeTemplate?: string | null;
   defaultParams?: Record<string, string>;
   docs?: string;
+  playbackMode: PlaybackMode;
+  sandboxPolicy: SandboxPolicy;
+  supportsSandbox: boolean;
+  directStreamTemplate?: string;
+  directContentType?: string;
 };
 
+type EmbedServerInput = Omit<EmbedServer, 'playbackMode' | 'sandboxPolicy' | 'supportsSandbox'> &
+  Partial<Pick<EmbedServer, 'playbackMode' | 'sandboxPolicy' | 'supportsSandbox'>>;
+
+const COMPATIBILITY_ONLY_SERVERS = new Set(['2embed', 'superembed', 'vidsrc', 'vidup']);
+
 /** Full catalog — all documented + researched providers from streamingapilinks.md */
-export const EMBED_SERVER_CATALOG: EmbedServer[] = [
+const EMBED_SERVER_INPUTS: EmbedServerInput[] = [
   {
     id: '111movies',
     name: '111Movies',
@@ -402,3 +415,10 @@ export const EMBED_SERVER_CATALOG: EmbedServer[] = [
     docs: 'https://wfs.lol/embed-api',
   },
 ];
+
+export const EMBED_SERVER_CATALOG: EmbedServer[] = EMBED_SERVER_INPUTS.map((server) => ({
+  playbackMode: 'iframe',
+  sandboxPolicy: COMPATIBILITY_ONLY_SERVERS.has(server.id) ? 'compatibility-only' : 'strict',
+  supportsSandbox: !COMPATIBILITY_ONLY_SERVERS.has(server.id),
+  ...server,
+}));

@@ -143,22 +143,22 @@ export function PlayerShell({ item, season, episode, maxEpisode = 1, maxSeason, 
       .catch(() => {});
   }, [item.tmdbId, item.imdbId, item.mediaType, season, episode, setSubtitleTracks]);
 
-  const failoverToNext = useCallback(() => {
+  const failoverToNext = useCallback((reason?: string) => {
     if (activeServerId) {
       markServerFailed(activeServerId);
-      log.warn('server failover', { from: activeServerId, item: item.id });
+      log.warn('server failover', { from: activeServerId, item: item.id, reason });
     }
     const nextId = getNextServerId();
     if (nextId) {
       incrementRetry();
       setActiveServer(nextId);
     } else {
-      setError('All servers failed for this title');
+      setError(reason ?? 'All servers failed for this title');
     }
   }, [activeServerId, markServerFailed, getNextServerId, incrementRetry, setActiveServer, setError, item.id]);
 
-  const handleLoadFail = useCallback(() => {
-    failoverToNext();
+  const handleLoadFail = useCallback((reason?: string) => {
+    failoverToNext(reason);
   }, [failoverToNext]);
 
   const handleProgress = useCallback(

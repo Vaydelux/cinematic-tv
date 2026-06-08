@@ -28,6 +28,10 @@ function normalizeContentSource(value: unknown): AppSettings['contentSource'] {
   return value === 'tmdb' || value === 'anilist' || value === 'all' ? value : 'all';
 }
 
+function normalizeIframeSandboxMode(value: unknown): AppSettings['iframeSandboxMode'] {
+  return value === 'compatibility' ? 'compatibility' : 'strict';
+}
+
 export function normalizeSettings(value: Partial<AppSettings> | null | undefined): AppSettings {
   const parsed = value ?? {};
   return {
@@ -43,6 +47,7 @@ export function normalizeSettings(value: Partial<AppSettings> | null | undefined
     onboardingComplete: parsed.onboardingComplete ?? false,
     contentSource: normalizeContentSource(parsed.contentSource),
     showAdult: Boolean(parsed.showAdult),
+    iframeSandboxMode: normalizeIframeSandboxMode(parsed.iframeSandboxMode),
   };
 }
 
@@ -64,6 +69,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   onboardingComplete: false,
   contentSource: 'all',
   showAdult: false,
+  iframeSandboxMode: 'strict',
 };
 
 export function getUserSettings(): AppSettings {
@@ -107,6 +113,7 @@ export function saveUserSettings(partial: Partial<AppSettings>) {
     hiddenServerIds: normalizeStringArray(partial.hiddenServerIds ?? current.hiddenServerIds),
     serverOrder: normalizeStringArray(partial.serverOrder ?? current.serverOrder),
     contentSource: normalizeContentSource(partial.contentSource ?? current.contentSource),
+    iframeSandboxMode: normalizeIframeSandboxMode(partial.iframeSandboxMode ?? current.iframeSandboxMode),
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(next));

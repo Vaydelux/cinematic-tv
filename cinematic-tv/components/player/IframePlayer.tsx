@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  buildEmbedUrl,
   getServerById,
   type EmbedParams,
 } from '@/lib/servers';
@@ -14,22 +13,26 @@ import {
   parsePlayerMessage,
 } from '@/lib/player/post-message';
 import { usePlayerStore } from '@/stores/usePlayerStore';
+import { getUserSettings } from '@/lib/user-settings';
+import type { PlaybackResolveResponse } from '@/lib/player/resolve-playback';
 import type { MediaItem } from '@/lib/types';
 
 const log = createLogger('player:iframe');
+const sandboxLog = createLogger('player:sandbox');
 const LOAD_TIMEOUT_MS = 15000;
 
 type Props = {
   item: MediaItem;
   season: number;
   episode: number;
-  onLoadFail: () => void;
+  onLoadFail: (reason?: string) => void;
   onProgress: (percent: number, currentSec: number) => void;
 };
 
 export function IframePlayer({ item, season, episode, onLoadFail, onProgress }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const loadedRef = useRef(false);
+  const [resolution, setResolution] = useState<PlaybackResolveResponse | null>(null);
 
   const activeServerId = usePlayerStore((s) => s.activeServerId);
   const startAtSec = usePlayerStore((s) => s.startAtSec);
@@ -47,32 +50,77 @@ export function IframePlayer({ item, season, episode, onLoadFail, onProgress }: 
     episode,
   };
 
-  let embedUrl = '';
-  try {
-    embedUrl = server ? buildEmbedUrl(server, embedParams, { startAt: startAtSec ?? undefined }) : '';
-  } catch (err) {
-    log.error('embed URL build failed', err, { serverId: activeServerId });
-  }
-
   const iframeKey = `${activeServerId}-${item.id}-${season}-${episode}-${startAtSec ?? 0}`;
+  const iframeResolution = resolution && !('error' in resolution) && resolution.mode === 'iframe' ? resolution : null;
+  const directResolution = resolution && !('error' in resolution) && resolution.mode === 'direct' ? resolution : null;
+  const embedUrl = iframeResolution?.url ?? '';
 
   useEffect(() => {
-    if (!activeServerId || !embedUrl) return;
+    if (!activeServerId || !server) return;
+    let cancelled = false;
     loadedRef.current = false;
-    setStatus('SEARCHING', `Loading ${server?.name ?? activeServerId}…`);
+    setResolution(null);
+    setStatus('SEARCHING', `Resolving ${server.name}...`);
 
+    const settings = getUserSettings();
+    const qs = new URLSearchParams({
+      serverId: activeServerId,
+      mediaType: embedParams.mediaType,
+      season: String(season),
+      episode: String(episode),
+      iframeSandboxMode: settings.iframeSandboxMode,
+    });
+    if (item.tmdbId) qs.set('tmdbId', String(item.tmdbId));
+    if (item.imdbId) qs.set('imdbId', item.imdbId);
+    if (item.anilistId) qs.set('anilistId', String(item.anilistId));
+    if (item.malId) qs.set('malId', String(item.malId));
+    if (startAtSec && startAtSec > 0) qs.set('startAt', String(Math.floor(startAtSec)));
+
+    fetch(`/api/player/resolve?${qs.toString()}`)
+      .then(async (response) => {
+        const data = (await response.json()) as PlaybackResolveResponse;
+        if (!cancelled) {
+          if ('error' in data) {
+            const blockedBySandbox = data.error === 'compatibility_required' || data.error === 'sandbox_unsupported';
+            const targetLog = blockedBySandbox ? sandboxLog : log;
+            targetLog.warn('playback resolver blocked provider', { serverId: activeServerId, error: data.error });
+            recordServerFailure(activeServerId);
+            setStatus('SEARCHING', `${data.reason} Trying next server...`);
+            window.setTimeout(() => onLoadFail(data.reason), 250);
+            return;
+          }
+          log.info('playback source resolved', { serverId: activeServerId, mode: data.mode });
+          setResolution(data);
+          if (data.mode === 'direct') setStatus('PLAYING');
+        }
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        log.error('playback resolve failed', error, { serverId: activeServerId });
+        recordServerFailure(activeServerId);
+        onLoadFail('Playback source could not be resolved.');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [iframeKey, activeServerId, server, season, episode, item.tmdbId, item.imdbId, item.anilistId, item.malId, startAtSec, onLoadFail, setStatus, embedParams.mediaType]);
+
+  useEffect(() => {
+    if (!activeServerId || !server || !embedUrl) return;
+    loadedRef.current = false;
+    setStatus('SEARCHING', `Loading ${server.name}...`);
     log.info('iframe load start', { serverId: activeServerId, embedUrl: embedUrl.slice(0, 120) });
-
     const timer = setTimeout(() => {
       if (!loadedRef.current) {
         log.warn('iframe load timeout', { serverId: activeServerId, item: item.id });
         if (activeServerId) recordServerFailure(activeServerId);
-        onLoadFail();
+        onLoadFail('Playback server timed out. Trying next server.');
       }
     }, LOAD_TIMEOUT_MS);
 
     return () => clearTimeout(timer);
-  }, [iframeKey, activeServerId, embedUrl, item.id, onLoadFail, server?.name, setStatus]);
+  }, [activeServerId, embedUrl, item.id, onLoadFail, server, setStatus]);
 
   useEffect(() => {
     if (!activeServerId || !isProgressCapableServer(activeServerId)) return;
@@ -89,12 +137,47 @@ export function IframePlayer({ item, season, episode, onLoadFail, onProgress }: 
     return () => window.removeEventListener('message', handler);
   }, [activeServerId, embedUrl, onProgress, server]);
 
-  if (!embedUrl) {
+  if (!server) {
     return (
       <div className="flex items-center justify-center h-full text-white/50">
-        No compatible embed URL for this title on {server?.name}
+        No compatible playback server is selected.
       </div>
     );
+  }
+
+  if (directResolution) {
+    return (
+      <video
+        key={iframeKey}
+        className="h-full w-full bg-black"
+        src={directResolution.src}
+        controls
+        autoPlay
+        playsInline
+        onLoadedMetadata={(event) => {
+          const duration = event.currentTarget.duration;
+          if (Number.isFinite(duration) && startAtSec && startAtSec > 0) {
+            event.currentTarget.currentTime = startAtSec;
+          }
+          if (activeServerId) recordServerSuccess(activeServerId);
+          setStatus('PLAYING');
+        }}
+        onTimeUpdate={(event) => {
+          const video = event.currentTarget;
+          if (video.duration > 0) {
+            onProgress((video.currentTime / video.duration) * 100, video.currentTime);
+          }
+        }}
+        onError={() => {
+          if (activeServerId) recordServerFailure(activeServerId);
+          onLoadFail('Direct playback failed. Trying next server.');
+        }}
+      />
+    );
+  }
+
+  if (!embedUrl || !iframeResolution) {
+    return <div className="h-full w-full bg-black" />;
   }
 
   return (
@@ -105,6 +188,7 @@ export function IframePlayer({ item, season, episode, onLoadFail, onProgress }: 
       className="w-full h-full border-0"
       allowFullScreen
       allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+      sandbox={iframeResolution.sandbox}
       referrerPolicy="origin"
       loading="eager"
       onLoad={() => {
