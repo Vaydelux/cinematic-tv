@@ -28,6 +28,24 @@ function normalizeContentSource(value: unknown): AppSettings['contentSource'] {
   return value === 'tmdb' || value === 'anilist' || value === 'all' ? value : 'all';
 }
 
+export function normalizeSettings(value: Partial<AppSettings> | null | undefined): AppSettings {
+  const parsed = value ?? {};
+  return {
+    ...DEFAULT_SETTINGS,
+    ...parsed,
+    themeColor: normalizeTheme(parsed.themeColor),
+    colorMode: normalizeColorMode(parsed.colorMode),
+    homeRailOrder: normalizeStringArray(parsed.homeRailOrder),
+    hiddenServerIds: normalizeStringArray(parsed.hiddenServerIds),
+    serverOrder: normalizeStringArray(parsed.serverOrder),
+    preferredSubtitleLanguage:
+      typeof parsed.preferredSubtitleLanguage === 'string' ? parsed.preferredSubtitleLanguage : 'en',
+    onboardingComplete: parsed.onboardingComplete ?? false,
+    contentSource: normalizeContentSource(parsed.contentSource),
+    showAdult: Boolean(parsed.showAdult),
+  };
+}
+
 function normalizeColorMode(value: unknown): AppSettings['colorMode'] {
   return value === 'light' ? 'light' : 'dark';
 }
@@ -57,23 +75,25 @@ export function getUserSettings(): AppSettings {
       return { ...DEFAULT_SETTINGS, themeColor: legacyTheme };
     }
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
-    return {
-      ...DEFAULT_SETTINGS,
+    return normalizeSettings({
       ...parsed,
-      themeColor: normalizeTheme(parsed.themeColor ?? localStorage.getItem(LEGACY_THEME_KEY)),
-      colorMode: normalizeColorMode(parsed.colorMode),
-      homeRailOrder: normalizeStringArray(parsed.homeRailOrder),
-      hiddenServerIds: normalizeStringArray(parsed.hiddenServerIds),
-      serverOrder: normalizeStringArray(parsed.serverOrder),
-      preferredSubtitleLanguage:
-        typeof parsed.preferredSubtitleLanguage === 'string' ? parsed.preferredSubtitleLanguage : 'en',
-      onboardingComplete: parsed.onboardingComplete ?? false,
-      contentSource: normalizeContentSource(parsed.contentSource),
-      showAdult: Boolean(parsed.showAdult),
-    };
+      themeColor: parsed.themeColor ?? normalizeTheme(localStorage.getItem(LEGACY_THEME_KEY)),
+    });
   } catch {
     return DEFAULT_SETTINGS;
   }
+}
+
+export function replaceUserSettings(settings: Partial<AppSettings>) {
+  const next = normalizeSettings(settings);
+  if (typeof window === 'undefined') return next;
+  try {
+    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.removeItem(LEGACY_THEME_KEY);
+  } catch {
+    // Keep the normalized settings available to callers even when storage fails.
+  }
+  return next;
 }
 
 export function saveUserSettings(partial: Partial<AppSettings>) {

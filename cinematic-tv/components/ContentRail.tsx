@@ -17,9 +17,9 @@ type Props = {
 };
 
 export function ContentRail({ title, items, prefix, showProgress, embedded, onItemHover }: Props) {
-  const pad = embedded ? 'px-0' : 'px-6 md:px-16';
-  const scrollPad = embedded ? 'pl-0' : 'pl-6 md:pl-16';
-  const endPad = embedded ? 'pr-0' : 'pr-6 md:pr-16';
+  const pad = embedded ? 'px-0' : 'px-5 md:px-16';
+  const scrollPad = embedded ? 'pl-0' : 'pl-5 md:pl-16';
+  const endPad = embedded ? 'pr-0' : 'pr-5 md:pr-16';
   const arrowL = embedded ? 'left-0' : 'left-2 md:left-8';
   const arrowR = embedded ? 'right-0' : 'right-2 md:right-8';
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -63,13 +63,14 @@ export function ContentRail({ title, items, prefix, showProgress, embedded, onIt
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.45 }}
-      className="relative min-w-0 group/rail mb-2"
+      className="relative mb-4 min-w-0 group/rail"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <h2 className={`text-xl md:text-2xl font-display font-bold mb-3 ${pad} text-on-surface`}>
-        {title}
-      </h2>
+      <div className={`mb-3 flex items-center gap-3 ${pad}`}>
+        <span className="h-5 w-1 rounded-full bg-primary" />
+        <h2 className="font-display text-xl font-bold tracking-tight text-on-surface md:text-2xl">{title}</h2>
+      </div>
 
       {/* Expansion zone leaves headroom for hover growth. */}
       <div className="relative">
@@ -92,7 +93,7 @@ export function ContentRail({ title, items, prefix, showProgress, embedded, onIt
             canLeft && hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
-          <span className="w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 flex items-center justify-center backdrop-blur-sm border border-white/10">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/75 shadow-xl backdrop-blur-sm hover:bg-black/90">
             <ChevronLeft className="w-6 h-6" />
           </span>
         </button>
@@ -105,7 +106,7 @@ export function ContentRail({ title, items, prefix, showProgress, embedded, onIt
             canRight && hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
-          <span className="w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 flex items-center justify-center backdrop-blur-sm border border-white/10">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/75 shadow-xl backdrop-blur-sm hover:bg-black/90">
             <ChevronRight className="w-6 h-6" />
           </span>
         </button>
@@ -124,6 +125,8 @@ export function ContentRail({ title, items, prefix, showProgress, embedded, onIt
                 layoutIdPrefix={prefix}
                 staggerIndex={index}
                 onItemHover={onItemHover}
+                compact={embedded}
+                expandOnHover={!embedded}
               />
             ))}
           </div>

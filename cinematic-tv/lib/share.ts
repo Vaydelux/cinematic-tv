@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase';
 import { withoutUndefined } from '@/lib/firestore-utils';
-import { collection, addDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 
 export type ShareTokenData = {
   source: 'tmdb' | 'anilist';
@@ -47,6 +47,9 @@ export async function consumeShareToken(tokenId: string): Promise<ShareTokenData
   const data = tokenDoc.data();
   if (data.isDisposable && data.used) return null;
   if (data.expiresAt && data.expiresAt.toDate() < new Date()) return null;
+  if (data.isDisposable) {
+    await updateDoc(tokenRef, { used: true }).catch(() => {});
+  }
 
   return data as ShareTokenData;
 }

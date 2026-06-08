@@ -1,16 +1,18 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion, type Variants } from 'motion/react';
 import { MovieCard } from '@/components/MovieCard';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { Bookmark } from 'lucide-react';
 import type { MediaItem } from '@/lib/types';
 
+const VIEW_EASE = [0.16, 1, 0.3, 1] as const;
+
 const viewVariants = {
   hidden: { opacity: 0, scale: 0.98, filter: 'blur(8px)', y: 20 },
-  visible: { opacity: 1, scale: 1, filter: 'blur(0px)', y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
-  exit: { opacity: 0, scale: 0.98, filter: 'blur(8px)', y: -20, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
-};
+  visible: { opacity: 1, scale: 1, filter: 'blur(0px)', y: 0, transition: { duration: 0.5, ease: VIEW_EASE } },
+  exit: { opacity: 0, scale: 0.98, filter: 'blur(8px)', y: -20, transition: { duration: 0.4, ease: VIEW_EASE } },
+} satisfies Variants;
 
 export function ListView() {
   const { items } = useWatchlist();

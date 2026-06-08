@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { auth, db, doc, setDoc, collection, onSnapshot } from '@/lib/firebase';
 import { withoutUndefined } from '@/lib/firestore-utils';
 import type { MediaItem } from '@/lib/types';
@@ -36,9 +36,26 @@ function readLocalContinue(): ContinueEntry[] {
   }
 }
 
+export function getLocalContinueWatching(): ContinueEntry[] {
+  return readLocalContinue();
+}
+
+export function replaceLocalContinueWatching(list: ContinueEntry[]) {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(list.slice(0, MAX_ITEMS)));
+  } catch {
+    // Keep cloud sync non-fatal if storage is blocked.
+  }
+}
+
 export function useContinueWatching() {
   const [items, setItems] = useState<ContinueEntry[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const itemsRef = useRef<ContinueEntry[]>([]);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   useEffect(() => {
     if (!auth) {
@@ -75,7 +92,7 @@ export function useContinueWatching() {
         lastWatchedAt: new Date().toISOString(),
       };
       const key = entryKey(keySeed);
-      const previous = items.find((i) => entryKey(i) === key);
+      const previous = itemsRef.current.find((i) => entryKey(i) === key);
       const sameEpisode =
         previous &&
         previous.season === item.season &&
@@ -109,7 +126,7 @@ export function useContinueWatching() {
         setItems(list.slice(0, MAX_ITEMS));
       }
     },
-    [items, userId]
+    [userId]
   );
 
   return { items, record };

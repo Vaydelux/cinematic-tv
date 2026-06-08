@@ -86,11 +86,11 @@ export default function CinematicApp() {
       <Suspense fallback={null}>
         <DeepLinkHandler setActiveMovie={setActiveMovie} />
       </Suspense>
-      <div className="min-h-screen bg-background text-on-surface font-body flex relative overflow-hidden">
+      <div className="relative flex min-h-screen overflow-hidden bg-transparent font-body text-on-surface">
         <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
         <BottomNav currentView={currentView} setCurrentView={setCurrentView} />
 
-        <main className="flex-1 min-w-0 md:ml-20 pb-20 md:pb-0 overflow-x-hidden overflow-y-auto relative z-10 h-screen">
+        <main className="relative z-10 h-screen min-w-0 flex-1 overflow-x-hidden overflow-y-auto pb-24 md:ml-24 md:pb-0">
           <AnimatePresence mode="wait">
             {currentView === 'home' && <HomeView key="home" />}
             {currentView === 'search' && <SearchView key="search" />}

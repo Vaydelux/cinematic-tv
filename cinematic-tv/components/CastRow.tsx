@@ -11,7 +11,7 @@ export function CastRow({ cast }: { cast: CastMember[] }) {
           <div key={member.id} className="flex flex-col items-center shrink-0 w-24">
             <div className="w-20 h-20 rounded-full overflow-hidden bg-surface-container mb-2 relative">
               {member.profileUrl ? (
-                <Image src={member.profileUrl} alt={member.name} fill className="object-cover" />
+                <Image src={member.profileUrl} alt={member.name} fill sizes="80px" className="object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-xs text-on-surface-variant">
                   N/A

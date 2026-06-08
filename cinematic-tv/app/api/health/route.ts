@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { cacheStats } from '@/lib/cache';
-import { getEnv } from '@/lib/env';
+import { getDeployReadiness, getEnv } from '@/lib/env';
 import { getLogStats } from '@/lib/log-store';
 
 export async function GET() {
   const env = getEnv();
+  const deploy = getDeployReadiness();
   const logs = getLogStats();
   return NextResponse.json({
     status: 'ok',
     tmdbConfigured: Boolean(env.TMDB_ACCESS_TOKEN),
+    deploy,
     anilistConfigured: true,
     cache: cacheStats(),
     logs: {

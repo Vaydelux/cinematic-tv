@@ -33,7 +33,7 @@ export const MovieCard = memo(function MovieCard({
           setActiveMovie({ ...movie, matchedLayoutId: finalLayoutId });
         }
       }}
-      className={`relative aspect-[16/9] min-w-[280px] md:min-w-[320px] rounded-lg overflow-hidden bg-surface-container group cursor-pointer transition-transform duration-300 hover:scale-[1.03] hover:z-10 shadow-lg hover:shadow-2xl ring-1 ring-white/10 ${className}`}
+      className={`group relative aspect-[16/9] min-w-[280px] cursor-pointer overflow-hidden rounded-xl bg-surface-container shadow-lg ring-1 ring-white/10 transition-transform duration-300 hover:z-10 hover:scale-[1.03] hover:shadow-2xl md:min-w-[320px] ${className}`}
       onMouseEnter={() => {
         setIsHovered(true);
         setHoveredMovie(movie);

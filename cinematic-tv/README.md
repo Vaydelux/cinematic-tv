@@ -4,7 +4,7 @@ A Next.js App Router streaming catalog UI for movies, TV, and anime. It combines
 
 ## Requirements
 
-- Node.js 20 or newer
+- Node.js 20.9 or newer, below Node 26
 - npm
 - A TMDB API read access token for the main catalog
 
@@ -54,8 +54,39 @@ The app is configured for Vercel or Node standalone output.
 
 For Vercel:
 
+- Set the project Node.js version to a supported LTS release. This repo also pins `engines.node` to `>=20.9.0 <26`.
 - Set the environment variables from `.env.example`.
-- Deploy with the default Next.js build command: `npm run build`.
+- Import the Git repository into Vercel. A local `.vercel/project.json` is not required for Git-based deployments; it is only needed when running `vercel build` against a locally linked project.
+- Deploy with the configured build command: `npm run build`.
+- Recommended production variables:
+
+  ```bash
+  TMDB_ACCESS_TOKEN="..."
+  APP_URL="https://your-project.vercel.app"
+  NEXT_PUBLIC_FIREBASE_API_KEY="..."
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="..."
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID="..."
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="..."
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="..."
+  NEXT_PUBLIC_FIREBASE_APP_ID="..."
+  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="..."
+  WYZIE_API_KEY="optional"
+  REDIS_URL="optional"
+  ```
+
+- Add the Vercel domain to Firebase Auth > Authorized domains when Google sign-in is enabled.
+- If you want to run Vercel's local build check, link or pull project settings first:
+
+  ```bash
+  vercel pull --yes --environment preview
+  vercel build --yes
+  ```
+
+- Deploy Firestore rules and indexes before enabling cloud sync:
+
+  ```bash
+  npm run firebase:deploy-rules
+  ```
 
 For Node standalone:
 

@@ -11,7 +11,7 @@ export function RelationsRail({ relations }: { relations: RelationItem[] }) {
           <div key={rel.id} className="shrink-0 w-32">
             <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-surface-container mb-2">
               {rel.image ? (
-                <Image src={rel.image} alt={rel.title} fill className="object-cover" />
+                <Image src={rel.image} alt={rel.title} fill sizes="128px" className="object-cover" />
               ) : (
                 <div className="w-full h-full bg-surface-variant" />
               )}

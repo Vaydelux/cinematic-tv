@@ -9,7 +9,7 @@ export function BottomNav({ currentView, setCurrentView }: { currentView: string
   ];
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 h-16 bg-black/70 border-t border-white/10 md:hidden z-50 flex items-center justify-around px-2 backdrop-blur-xl">
+    <nav className="fixed bottom-0 inset-x-0 z-50 flex h-[72px] items-center justify-around border-t border-white/10 bg-black/75 px-2 backdrop-blur-2xl md:hidden">
       {navItems.map(item => {
         const Icon = item.icon;
         const isActive = currentView === item.id;
@@ -18,11 +18,11 @@ export function BottomNav({ currentView, setCurrentView }: { currentView: string
             key={item.id}
             onClick={() => setCurrentView(item.id)}
             aria-current={isActive ? 'page' : undefined}
-            className={`flex flex-col items-center justify-center w-16 h-full transition-colors ${
-              isActive ? 'text-white' : 'text-on-surface-variant hover:text-on-surface'
+            className={`flex h-full w-20 flex-col items-center justify-center transition-colors ${
+              isActive ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
-            <span className={`p-1.5 rounded-md mb-0.5 ${isActive ? 'bg-primary' : ''}`}>
+            <span className={`mb-1 rounded-xl p-2 ${isActive ? 'bg-primary text-primary-contrast shadow-lg shadow-black/30' : ''}`}>
               <Icon className="w-[18px] h-[18px]" />
             </span>
             <span className="text-[10px] font-medium">{item.label}</span>

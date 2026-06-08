@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useContext, useState, type MouseEvent } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, type Variants } from 'motion/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Info, Play, RefreshCw } from 'lucide-react';
@@ -13,14 +13,16 @@ import { getUserSettings } from '@/lib/user-settings';
 import { MovieContext } from '@/lib/context';
 import type { MediaItem } from '@/lib/types';
 
+const VIEW_EASE = [0.16, 1, 0.3, 1] as const;
+
 const viewVariants = {
   hidden: { opacity: 0, scale: 0.98, filter: 'blur(8px)', y: 20 },
-  visible: { opacity: 1, scale: 1, filter: 'blur(0px)', y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
-  exit: { opacity: 0, scale: 0.98, filter: 'blur(8px)', y: -20, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
-};
+  visible: { opacity: 1, scale: 1, filter: 'blur(0px)', y: 0, transition: { duration: 0.5, ease: VIEW_EASE } },
+  exit: { opacity: 0, scale: 0.98, filter: 'blur(8px)', y: -20, transition: { duration: 0.4, ease: VIEW_EASE } },
+} satisfies Variants;
 
 const HERO_HEIGHT =
-  'h-[72vh] min-h-[500px] max-h-[820px] sm:min-h-[540px] md:h-[76vh]';
+  'h-[76vh] min-h-[560px] max-h-[880px] sm:min-h-[600px] md:h-[80vh]';
 
 type HomeData = {
   hero: MediaItem | null;
@@ -91,14 +93,14 @@ export function HomeView() {
   if (loading) {
     return (
       <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="w-full min-h-screen px-4 py-8 sm:px-6 md:px-16 md:py-10">
-        <div className="h-[52vh] min-h-[360px] rounded-lg bg-surface-container animate-pulse cinema-ring sm:min-h-[440px]" />
+        <div className="h-[56vh] min-h-[380px] rounded-2xl bg-surface-container animate-pulse cinema-ring sm:min-h-[460px]" />
         <div className="mt-8 space-y-5">
           {[1, 2, 3].map((row) => (
             <div key={row}>
               <div className="h-6 w-48 rounded bg-surface-container animate-pulse mb-3" />
               <div className="flex gap-2 overflow-hidden">
                 {[1, 2, 3, 4].map((tile) => (
-                  <div key={tile} className="h-32 w-64 shrink-0 rounded bg-surface-container animate-pulse" />
+                  <div key={tile} className="h-32 w-64 shrink-0 rounded-xl bg-surface-container animate-pulse" />
                 ))}
               </div>
             </div>
@@ -111,7 +113,7 @@ export function HomeView() {
   if (error) {
     return (
       <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="min-h-screen flex items-center justify-center p-4 sm:p-6">
-        <div className="cinema-panel cinema-ring max-w-md rounded-lg p-6 text-center">
+        <div className="premium-panel max-w-md rounded-2xl p-6 text-center">
           <AlertCircle className="mx-auto mb-4 h-9 w-9 text-primary" />
           <h1 className="font-display text-2xl font-bold text-on-surface">Catalog unavailable</h1>
           <p className="mt-2 text-sm text-on-surface-variant">{error}</p>
@@ -130,7 +132,7 @@ export function HomeView() {
   }
 
   return (
-    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="relative w-full min-h-screen min-w-0 bg-transparent pb-24">
+    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="relative w-full min-h-screen min-w-0 bg-transparent pb-28">
       {displayHero && (
         <div
           className={`pointer-events-none absolute inset-x-0 top-0 z-[1] ${HERO_HEIGHT} overflow-hidden`}
@@ -150,15 +152,18 @@ export function HomeView() {
                 alt=""
                 fill
                 className="object-cover scale-105"
+                sizes="100vw"
                 priority={!isHoverPreview}
+                loading="eager"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-black/10" />
-              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/55 to-transparent opacity-90" />
-              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
+              <div className="hero-top-scrim absolute inset-0" />
+              <div className="hero-side-scrim absolute inset-0" />
+              <div className="hero-accent-gradient absolute inset-0 opacity-70" />
+              <div className="hero-bottom-scrim absolute inset-x-0 bottom-0 h-48" />
             </motion.div>
           </AnimatePresence>
 
-          <section className="absolute inset-x-0 bottom-0 flex items-end px-4 pb-14 sm:px-6 md:px-16 md:pb-20">
+          <section className="absolute inset-x-0 bottom-0 flex items-end px-4 pb-16 sm:px-6 md:px-16 md:pb-24">
             <AnimatePresence mode="wait">
               <motion.div
                 key={displayHero.id}
@@ -166,11 +171,11 @@ export function HomeView() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="relative max-w-3xl flex flex-col gap-4"
+                className="relative flex max-w-4xl flex-col gap-4"
               >
                 <div className="flex flex-wrap gap-2 text-[11px] md:text-xs font-bold tracking-widest uppercase text-white/70">
                   {!isHoverPreview && (
-                    <span className="rounded bg-primary px-2 py-1 text-white">Featured</span>
+                    <span className="rounded-full bg-primary px-3 py-1 text-primary-contrast shadow-lg shadow-black/30">Featured</span>
                   )}
                   {displayHero.genres?.slice(0, 3).map((genre) => (
                     <span key={genre} className="rounded border border-white/[0.15] bg-white/[0.08] px-2 py-1">
@@ -178,10 +183,15 @@ export function HomeView() {
                     </span>
                   ))}
                 </div>
-                <h1 className="text-3xl sm:text-4xl md:text-7xl font-display font-bold text-white drop-shadow-2xl tracking-tight leading-[0.98] break-words">
+                <h1 className="max-w-4xl break-words font-display text-4xl font-black leading-[0.92] tracking-tight text-white drop-shadow-2xl sm:text-5xl md:text-7xl">
                   {displayHero.title}
                 </h1>
-                <p className="text-base md:text-lg text-on-surface-variant max-w-xl text-shadow">{displayHero.meta}</p>
+                <div className="flex flex-wrap gap-2 text-xs font-bold text-white/75">
+                  <span className="rounded-full border border-white/15 bg-white/[0.08] px-3 py-1">{displayHero.meta}</span>
+                  {displayHero.voteAverage != null && (
+                    <span className="rounded-full border border-white/15 bg-white/[0.08] px-3 py-1">{displayHero.voteAverage.toFixed(1)} rating</span>
+                  )}
+                </div>
                 {displayHero.description && (
                   <p className="hidden md:block max-w-2xl text-sm leading-6 text-white/[0.72] line-clamp-3">
                     {displayHero.description}
@@ -191,14 +201,14 @@ export function HomeView() {
                   <button
                     type="button"
                     onClick={() => router.push(getWatchPath(displayHero))}
-                    className="flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-bold text-black shadow-xl transition hover:bg-white/90 active:scale-95 sm:px-6 sm:py-3"
+                    className="flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-black text-black shadow-xl transition hover:bg-white/90 active:scale-95 sm:px-7"
                   >
                     <Play className="w-5 h-5 fill-current" /> Play
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveMovie({ ...displayHero, matchedLayoutId: `hero-${displayHero.id}` })}
-                    className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.12] px-4 py-2.5 text-sm font-bold text-white shadow-xl backdrop-blur transition hover:bg-white/[0.18] active:scale-95 sm:px-6 sm:py-3"
+                    className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/45 px-5 py-3 text-sm font-black text-white shadow-xl backdrop-blur transition hover:bg-black/60 active:scale-95 sm:px-7"
                   >
                     <Info className="w-5 h-5" /> More Info
                   </button>

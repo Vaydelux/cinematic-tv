@@ -1,82 +1,106 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--app-color-background);
+  --color-primary: var(--app-color-primary);
+  --color-primary-contrast: var(--app-color-primary-contrast);
+  --color-surface: var(--app-color-surface);
+  --color-surface-container: var(--app-color-surface-container);
+  --color-surface-variant: var(--app-color-surface-variant);
+  --color-on-surface: var(--app-color-on-surface);
+  --color-on-surface-variant: var(--app-color-on-surface-variant);
+  --font-body: var(--app-font-body);
+  --font-display: var(--app-font-display);
+}
 
 @layer base {
   :root {
-    --color-primary: #f43f46;
-    --color-background: #09090b;
-    --color-surface: #111114;
-    --color-surface-container: #1a1b20;
-    --color-surface-variant: #30323a;
-    --color-on-surface: #fafafa;
-    --color-on-surface-variant: #b8bbc5;
+    --app-color-primary: #f43f46;
+    --app-color-primary-contrast: #ffffff;
+    --app-color-background: #09090b;
+    --app-color-surface: #111114;
+    --app-color-surface-container: #1a1b20;
+    --app-color-surface-variant: #30323a;
+    --app-color-on-surface: #fafafa;
+    --app-color-on-surface-variant: #b8bbc5;
   }
 
   .theme-crimson {
-    --color-primary: #f43f46;
-    --color-background: #0a0708;
-    --color-surface: #151012;
-    --color-surface-container: #21171a;
-    --color-surface-variant: #3b262b;
+    --app-color-primary: #f43f46;
+    --app-color-primary-contrast: #ffffff;
+    --app-color-background: #0a0708;
+    --app-color-surface: #151012;
+    --app-color-surface-container: #21171a;
+    --app-color-surface-variant: #3b262b;
   }
 
   .theme-ocean {
-    --color-primary: #14b8a6;
-    --color-background: #070b0c;
-    --color-surface: #101819;
-    --color-surface-container: #172527;
-    --color-surface-variant: #244044;
+    --app-color-primary: #14b8a6;
+    --app-color-primary-contrast: #041312;
+    --app-color-background: #070b0c;
+    --app-color-surface: #101819;
+    --app-color-surface-container: #172527;
+    --app-color-surface-variant: #244044;
   }
 
   .theme-emerald {
-    --color-primary: #22c55e;
-    --color-background: #070b08;
-    --color-surface: #111812;
-    --color-surface-container: #17261a;
-    --color-surface-variant: #28452e;
+    --app-color-primary: #22c55e;
+    --app-color-primary-contrast: #04110a;
+    --app-color-background: #070b08;
+    --app-color-surface: #111812;
+    --app-color-surface-container: #17261a;
+    --app-color-surface-variant: #28452e;
   }
 
   .theme-obsidian {
-    --color-primary: #f5f5f5;
-    --color-background: #030303;
-    --color-surface: #0d0d0d;
-    --color-surface-container: #191919;
-    --color-surface-variant: #303030;
-    --color-on-surface: #ffffff;
-    --color-on-surface-variant: #b3b3b3;
+    --app-color-primary: #f5f5f5;
+    --app-color-primary-contrast: #030303;
+    --app-color-background: #030303;
+    --app-color-surface: #0d0d0d;
+    --app-color-surface-container: #191919;
+    --app-color-surface-variant: #303030;
+    --app-color-on-surface: #ffffff;
+    --app-color-on-surface-variant: #b3b3b3;
   }
 
   .mode-light {
-    --color-background: #f6f7f9;
-    --color-surface: #ffffff;
-    --color-surface-container: #eef0f4;
-    --color-surface-variant: #d7dbe3;
-    --color-on-surface: #111318;
-    --color-on-surface-variant: #545b67;
+    --app-color-background: #f6f7f9;
+    --app-color-surface: #ffffff;
+    --app-color-surface-container: #eef0f4;
+    --app-color-surface-variant: #d7dbe3;
+    --app-color-on-surface: #111318;
+    --app-color-on-surface-variant: #545b67;
   }
 
   .mode-light.theme-obsidian {
-    --color-primary: #18181b;
+    --app-color-primary: #18181b;
+    --app-color-primary-contrast: #ffffff;
   }
 
   .mode-light.theme-default,
   .mode-light.theme-crimson {
-    --color-primary: #dc2626;
+    --app-color-primary: #dc2626;
+    --app-color-primary-contrast: #ffffff;
   }
 
   .mode-light.theme-ocean {
-    --color-primary: #0f766e;
+    --app-color-primary: #0f766e;
+    --app-color-primary-contrast: #ffffff;
   }
 
   .mode-light.theme-emerald {
-    --color-primary: #15803d;
+    --app-color-primary: #15803d;
+    --app-color-primary-contrast: #ffffff;
   }
 }
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-on-surface);
+  background-color: var(--app-color-background);
+  color: var(--app-color-on-surface);
+  background-image:
+    linear-gradient(140deg, color-mix(in srgb, var(--app-color-primary) 16%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--app-color-surface-container) 46%, black 22%), var(--app-color-background) 42%);
+  background-attachment: fixed;
   transition: background-color 0.5s ease;
   min-width: 320px;
 }
@@ -86,11 +110,83 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-primary) 70%, white 10%);
+  background: color-mix(in srgb, var(--app-color-primary) 70%, white 10%);
   color: white;
 }
 
 @layer utilities {
+  .cinema-backdrop {
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--app-color-primary) 12%, transparent), transparent 36%),
+      linear-gradient(180deg, color-mix(in srgb, var(--app-color-surface-container) 94%, black 12%), var(--app-color-background));
+  }
+
+  .premium-panel {
+    background:
+      linear-gradient(145deg, color-mix(in srgb, var(--app-color-surface-container) 88%, white 5%), color-mix(in srgb, var(--app-color-surface) 94%, black 8%)),
+      var(--app-color-surface);
+    border: 1px solid color-mix(in srgb, var(--app-color-surface-variant) 74%, white 10%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 24px 70px rgba(0, 0, 0, 0.28);
+  }
+
+  .premium-control {
+    background-color: color-mix(in srgb, var(--app-color-surface-container) 88%, white 6%);
+    border: 1px solid color-mix(in srgb, var(--app-color-surface-variant) 76%, white 10%);
+  }
+
+  .premium-control-active {
+    background: linear-gradient(135deg, var(--app-color-primary), color-mix(in srgb, var(--app-color-primary) 78%, white 18%));
+    color: var(--app-color-primary-contrast);
+    border-color: color-mix(in srgb, var(--app-color-primary) 80%, white 15%);
+  }
+
+  .hero-accent-gradient {
+    background: linear-gradient(120deg, color-mix(in srgb, var(--app-color-primary) 24%, transparent), transparent 44%);
+  }
+
+  .hero-top-scrim {
+    background: linear-gradient(to top, var(--app-color-background), color-mix(in srgb, var(--app-color-background) 62%, transparent), rgba(0, 0, 0, 0.1));
+  }
+
+  .hero-side-scrim {
+    background: linear-gradient(to right, var(--app-color-background), color-mix(in srgb, var(--app-color-background) 50%, transparent), transparent);
+    opacity: 0.95;
+  }
+
+  .hero-bottom-scrim {
+    background: linear-gradient(to top, var(--app-color-background), transparent);
+  }
+
+  .mode-light .hero-top-scrim {
+    background: linear-gradient(to top, var(--app-color-background), rgba(20, 20, 24, 0.48), rgba(20, 20, 24, 0.2));
+  }
+
+  .mode-light .hero-side-scrim {
+    background: linear-gradient(to right, rgba(12, 12, 16, 0.82), rgba(12, 12, 16, 0.42), transparent);
+    opacity: 1;
+  }
+
+  .mode-light .hero-bottom-scrim {
+    background: linear-gradient(to top, var(--app-color-background), rgba(246, 247, 249, 0.74), transparent);
+  }
+
+  .mode-light .premium-panel {
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--app-color-surface-container) 72%, white 18%)),
+      var(--app-color-surface);
+    border-color: color-mix(in srgb, var(--app-color-surface-variant) 72%, black 10%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      0 24px 70px rgba(15, 23, 42, 0.12);
+  }
+
+  .mode-light .premium-control {
+    background-color: rgba(255, 255, 255, 0.78);
+    border-color: color-mix(in srgb, var(--app-color-surface-variant) 72%, black 8%);
+  }
+
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -104,14 +200,14 @@ body {
   }
 
   .surface-bright {
-    background-color: color-mix(in srgb, var(--color-surface-variant) 82%, white 12%);
+    background-color: color-mix(in srgb, var(--app-color-surface-variant) 82%, white 12%);
   }
 
   .cinema-panel {
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--color-surface-container) 92%, white 4%), var(--color-surface)),
-      var(--color-surface);
-    border: 1px solid color-mix(in srgb, var(--color-surface-variant) 78%, white 8%);
+      linear-gradient(180deg, color-mix(in srgb, var(--app-color-surface-container) 92%, white 4%), var(--app-color-surface)),
+      var(--app-color-surface);
+    border: 1px solid color-mix(in srgb, var(--app-color-surface-variant) 78%, white 8%);
   }
 
   .cinema-ring {
@@ -122,9 +218,9 @@ body {
 
   .mode-light .cinema-panel {
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 94%, white 4%), var(--color-surface-container)),
-      var(--color-surface);
-    border-color: color-mix(in srgb, var(--color-surface-variant) 68%, black 6%);
+      linear-gradient(180deg, color-mix(in srgb, var(--app-color-surface) 94%, white 4%), var(--app-color-surface-container)),
+      var(--app-color-surface);
+    border-color: color-mix(in srgb, var(--app-color-surface-variant) 68%, black 6%);
   }
 
   .mode-light .cinema-ring {

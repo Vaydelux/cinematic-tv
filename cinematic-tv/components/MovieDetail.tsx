@@ -137,10 +137,6 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
     onClose();
   };
 
-  const trailerUrl = detail.trailerKey
-    ? `https://www.youtube-nocookie.com/embed/${detail.trailerKey}?autoplay=1&mute=1`
-    : null;
-
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 pointer-events-none sm:p-4 md:p-8">
       <motion.div
@@ -152,7 +148,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
       />
       <motion.div
         layoutId={movie.matchedLayoutId}
-        className="cinema-panel relative flex h-[94vh] w-full max-w-5xl flex-col overflow-y-auto overflow-x-hidden rounded-lg shadow-2xl pointer-events-auto hide-scrollbar sm:h-[92vh]"
+        className="premium-panel pointer-events-auto relative flex h-[94vh] w-full max-w-5xl flex-col overflow-y-auto overflow-x-hidden rounded-2xl shadow-2xl hide-scrollbar sm:h-[92vh]"
       >
         <button
           onClick={onClose}
@@ -169,15 +165,10 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
               alt={detail.title}
               fill
               className="object-cover"
+              sizes="(max-width: 768px) 100vw, 1024px"
+              priority
             />
           </div>
-          {trailerUrl && (
-            <iframe
-              src={trailerUrl}
-              className="absolute inset-0 z-10 w-full h-full object-cover pointer-events-none"
-              allow="autoplay; encrypted-media"
-            />
-          )}
           <div className="absolute inset-0 z-20 bg-gradient-to-t from-surface via-background/60 to-transparent" />
           <div className="absolute inset-0 z-20 bg-gradient-to-r from-surface via-transparent to-transparent opacity-80" />
 
@@ -196,13 +187,13 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={handlePlay}
-                className="flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-bold text-black shadow-xl transition hover:bg-white/90 active:scale-95 sm:px-6 sm:py-3"
+                className="flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-black text-black shadow-xl transition hover:bg-white/90 active:scale-95 sm:px-7"
               >
                 <Play className="w-5 h-5 fill-current" /> Play
               </button>
               <button
                 onClick={() => toggle(detail)}
-                className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.12] px-4 py-2.5 text-sm font-bold text-white shadow-xl backdrop-blur transition hover:bg-white/[0.18] active:scale-95 sm:px-6 sm:py-3"
+                className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/45 px-5 py-3 text-sm font-black text-white shadow-xl backdrop-blur transition hover:bg-black/60 active:scale-95 sm:px-7"
               >
                 {inList ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                 {inList ? 'In List' : 'My List'}
@@ -211,7 +202,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
                 onClick={handleShare}
                 disabled={sharing || !auth?.currentUser}
                 title={auth?.currentUser ? 'Copy share link' : 'Sign in to share'}
-                className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.12] px-4 py-2.5 text-sm font-bold text-white shadow-xl backdrop-blur transition hover:bg-white/[0.18] active:scale-95 disabled:opacity-40 sm:px-5 sm:py-3"
+                className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/45 px-5 py-3 text-sm font-black text-white shadow-xl backdrop-blur transition hover:bg-black/60 active:scale-95 disabled:opacity-40"
               >
                 <Share2 className="w-5 h-5" />
                 {shareUrl ? 'Copied!' : 'Share'}
@@ -249,7 +240,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
                         onClick={() => setSelectedSeason(s.seasonNumber)}
                         className={`px-4 py-2 rounded-md text-sm font-bold whitespace-nowrap ${
                           selectedSeason === s.seasonNumber
-                            ? 'bg-primary text-white'
+                            ? 'bg-primary text-primary-contrast'
                             : 'bg-white/[0.06] text-on-surface-variant hover:bg-white/10'
                         }`}
                       >
@@ -264,7 +255,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
                         onClick={() => setSelectedEpisode(ep.episodeNumber)}
                         className={`aspect-square rounded-md flex items-center justify-center text-sm font-bold ${
                           selectedEpisode === ep.episodeNumber
-                            ? 'bg-primary text-white'
+                            ? 'bg-primary text-primary-contrast'
                             : 'bg-white/[0.06] hover:bg-white/10'
                         }`}
                       >
@@ -286,7 +277,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
                           onClick={() => setSelectedEpisode(n)}
                           className={`aspect-square rounded-md flex items-center justify-center text-sm font-bold ${
                             selectedEpisode === n
-                              ? 'bg-primary text-white'
+                            ? 'bg-primary text-primary-contrast'
                               : 'bg-white/[0.06] hover:bg-white/10'
                           }`}
                         >

@@ -42,6 +42,18 @@ function readLocalWatchlist(): WatchlistEntry[] {
   }
 }
 
+export function getLocalWatchlist(): WatchlistEntry[] {
+  return readLocalWatchlist();
+}
+
+export function replaceLocalWatchlist(list: WatchlistEntry[]) {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
+  } catch {
+    // Keep cloud sync non-fatal if storage is blocked.
+  }
+}
+
 export function useWatchlist() {
   const [items, setItems] = useState<WatchlistEntry[]>([]);
   const [userId, setUserId] = useState<string | null>(null);

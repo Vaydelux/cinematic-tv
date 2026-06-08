@@ -30,6 +30,69 @@ service cloud.firestore {
       return value in ['movie', 'tv', 'anime', 'manga'];
     }
 
+    function validStringList(value) {
+      return value is list && value.size() <= 80;
+    }
+
+    function validPreferences(value) {
+      return value is map
+      && value.keys().hasOnly([
+        'themeColor',
+        'colorMode',
+        'fontSize',
+        'homeRailOrder',
+        'language',
+        'region',
+        'defaultServerId',
+        'serverOrder',
+        'hiddenServerIds',
+        'preferredSubtitleLanguage',
+        'onboardingComplete',
+        'contentSource',
+        'showAdult'
+      ])
+      && value.themeColor in ['theme-default', 'theme-crimson', 'theme-ocean', 'theme-emerald', 'theme-obsidian']
+      && value.colorMode in ['dark', 'light']
+      && optionalString(value.fontSize, 24)
+      && validStringList(value.homeRailOrder)
+      && optionalString(value.language, 12)
+      && optionalString(value.region, 8)
+      && optionalString(value.defaultServerId, 80)
+      && validStringList(value.serverOrder)
+      && validStringList(value.hiddenServerIds)
+      && optionalString(value.preferredSubtitleLanguage, 12)
+      && value.onboardingComplete is bool
+      && value.contentSource in ['all', 'tmdb', 'anilist']
+      && value.showAdult is bool;
+    }
+
+    function validStats(value) {
+      return value is map
+      && value.keys().hasOnly(['watchlistCount', 'continueWatchingCount', 'reviewsCount'])
+      && optionalNumber(value.watchlistCount)
+      && optionalNumber(value.continueWatchingCount)
+      && optionalNumber(value.reviewsCount);
+    }
+
+    function validUserProfile() {
+      return request.resource.data.keys().hasOnly([
+        'displayName',
+        'email',
+        'photoURL',
+        'createdAt',
+        'updatedAt',
+        'preferences',
+        'stats'
+      ])
+      && nonEmptyString(request.resource.data.displayName, 120)
+      && optionalString(request.resource.data.email, 240)
+      && optionalString(request.resource.data.photoURL, 1000)
+      && request.resource.data.createdAt is timestamp
+      && request.resource.data.updatedAt is timestamp
+      && validPreferences(request.resource.data.preferences)
+      && validStats(request.resource.data.stats);
+    }
+
     function validWatchlistEntry() {
       return request.resource.data.keys().hasOnly([
         'source',
@@ -126,7 +189,9 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read, create, update, delete: if owns(userId);
+      allow read: if owns(userId);
+      allow create, update: if owns(userId) && validUserProfile();
+      allow delete: if owns(userId);
 
       match /watchlist/{entryId} {
         allow read: if owns(userId);

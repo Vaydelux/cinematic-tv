@@ -43,6 +43,9 @@ export async function fetchWyzieSubtitles(params: {
 
   if (!res.ok) return [];
 
+  const contentType = res.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) return [];
+
   const data = await res.json();
   const list: WyzieSubtitle[] = Array.isArray(data) ? data : (data.subtitles ?? data.results ?? []);
 
