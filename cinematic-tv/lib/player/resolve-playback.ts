@@ -49,6 +49,10 @@ const COMPATIBILITY_IFRAME_SANDBOX = [
   'allow-forms',
   'allow-presentation',
   'allow-popups',
+  'allow-top-navigation',
+  'allow-modals',
+  'allow-pointer-lock',
+  'allow-downloads',
 ].join(' ');
 
 const START_AT_SERVERS = new Set(['vidfast', 'peachify', 'primesrc', 'videasy', 'vidnest']);

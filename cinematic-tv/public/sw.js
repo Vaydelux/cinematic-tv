@@ -1,7 +1,7 @@
 const CACHE_VERSION = 'cinematic-tv-v1';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
-const SHELL_ASSETS = ['/', '/manifest.webmanifest', '/icon.svg'];
+const SHELL_ASSETS = ['/', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -74,7 +74,6 @@ self.addEventListener('fetch', (event) => {
   if (
     url.pathname.startsWith('/_next/static/') ||
     url.pathname.startsWith('/icons/') ||
-    url.pathname === '/icon.svg' ||
     url.pathname === '/manifest.webmanifest'
   ) {
     event.respondWith(cacheFirst(request));
