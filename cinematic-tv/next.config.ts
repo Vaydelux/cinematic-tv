@@ -6,12 +6,17 @@ const embedDomains = [
   'www.youtube-nocookie.com',
 ];
 
+const isVercel = !!process.env.VERCEL;
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  outputFileTracingRoot: process.cwd(),
-  turbopack: {
-    root: process.cwd(),
-  },
+  ...(isVercel ? {} : {
+    output: 'standalone',
+    outputFileTracingRoot: process.cwd(),
+    turbopack: {
+      root: process.cwd(),
+    },
+  }),
   typescript: {
     ignoreBuildErrors: false,
   },
@@ -37,7 +42,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  output: 'standalone',
+
   transpilePackages: ['motion'],
   webpack: (config, { dev }) => {
     if (dev && process.env.DISABLE_HMR === 'true') {
