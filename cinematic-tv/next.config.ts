@@ -8,6 +8,7 @@ const embedDomains = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  outputFileTracingRoot: process.cwd(),
   turbopack: {
     root: process.cwd(),
   },

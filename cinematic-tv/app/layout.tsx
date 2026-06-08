@@ -3,7 +3,7 @@ import { Inter, Space_Grotesk } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { LogProvider } from '@/components/LogProvider';
-import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
+import { ServiceWorkerRegister } from '../components/ServiceWorkerRegister';
 
 const inter = Inter({ subsets: ['latin'], variable: '--app-font-body' });
 const space = Space_Grotesk({ subsets: ['latin'], variable: '--app-font-display' });

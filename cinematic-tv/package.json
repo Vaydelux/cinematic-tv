@@ -2,7 +2,7 @@
   "name": "cinematic-tv",
   "version": "1.0.0",
   "engines": {
-    "node": ">=20.9.0 <26"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "next dev -p 3000",
@@ -34,7 +34,7 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@tailwindcss/postcss": "4.3.0",
-    "eslint": "10.4.1",
+    "eslint": "9.21.0",
     "eslint-config-next": "16.2.7",
     "firebase-tools": "^15.19.1",
     "postcss": "8.5.15",

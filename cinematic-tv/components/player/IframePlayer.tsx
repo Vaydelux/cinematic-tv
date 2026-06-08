@@ -50,7 +50,8 @@ export function IframePlayer({ item, season, episode, onLoadFail, onProgress }: 
     episode,
   };
 
-  const iframeKey = `${activeServerId}-${item.id}-${season}-${episode}-${startAtSec ?? 0}`;
+  const settings = getUserSettings();
+  const iframeKey = `${activeServerId}-${item.id}-${season}-${episode}-${startAtSec ?? 0}-${settings.iframeSandboxMode}`;
   const iframeResolution = resolution && !('error' in resolution) && resolution.mode === 'iframe' ? resolution : null;
   const directResolution = resolution && !('error' in resolution) && resolution.mode === 'direct' ? resolution : null;
   const embedUrl = iframeResolution?.url ?? '';
@@ -62,7 +63,6 @@ export function IframePlayer({ item, season, episode, onLoadFail, onProgress }: 
     setResolution(null);
     setStatus('SEARCHING', `Resolving ${server.name}...`);
 
-    const settings = getUserSettings();
     const qs = new URLSearchParams({
       serverId: activeServerId,
       mediaType: embedParams.mediaType,
@@ -104,7 +104,7 @@ export function IframePlayer({ item, season, episode, onLoadFail, onProgress }: 
     return () => {
       cancelled = true;
     };
-  }, [iframeKey, activeServerId, server, season, episode, item.tmdbId, item.imdbId, item.anilistId, item.malId, startAtSec, onLoadFail, setStatus, embedParams.mediaType]);
+  }, [iframeKey, activeServerId, server, season, episode, item.tmdbId, item.imdbId, item.anilistId, item.malId, startAtSec, onLoadFail, setStatus, embedParams.mediaType, settings.iframeSandboxMode]);
 
   useEffect(() => {
     if (!activeServerId || !server || !embedUrl) return;

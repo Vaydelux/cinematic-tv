@@ -18,7 +18,7 @@ export type IframePlaybackDescriptor = {
   mode: 'iframe';
   url: string;
   sandboxPolicy: SandboxPolicy;
-  sandbox: string;
+  sandbox?: string;
 };
 
 export type DirectPlaybackDescriptor = {
@@ -158,8 +158,10 @@ export function resolvePlayback(params: PlaybackResolveParams): PlaybackResolveR
     mode: 'iframe',
     url: buildResolvedEmbedUrl(server, params),
     sandboxPolicy: server.sandboxPolicy,
-    sandbox: server.sandboxPolicy === 'compatibility-only'
-      ? COMPATIBILITY_IFRAME_SANDBOX
-      : STRICT_IFRAME_SANDBOX,
+    sandbox: sandboxMode === 'compatibility'
+      ? undefined
+      : (server.sandboxPolicy === 'compatibility-only'
+        ? COMPATIBILITY_IFRAME_SANDBOX
+        : STRICT_IFRAME_SANDBOX),
   };
 }
