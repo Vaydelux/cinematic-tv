@@ -1,0 +1,11 @@
+{
+  "id": "wfs",
+  "name": "WatchFreeStreams",
+  "enabled": true,
+  "domains": ["embed.wfs.lol"],
+  "idTypes": ["tmdb"],
+  "movieTemplate": "https://embed.wfs.lol/embed/movie/{tmdbId}",
+  "tvTemplate": "https://embed.wfs.lol/embed/tv/{tmdbId}/{season}/{episode}",
+  "animeTemplate": null,
+  "docs": "https://wfs.lol/embed-api"
+}

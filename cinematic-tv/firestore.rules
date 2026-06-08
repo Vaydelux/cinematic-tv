@@ -1,0 +1,164 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function owns(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function nonEmptyString(value, maxLength) {
+      return value is string && value.size() > 0 && value.size() <= maxLength;
+    }
+
+    function optionalNumber(value) {
+      return value == null || value is number;
+    }
+
+    function optionalString(value, maxLength) {
+      return value == null || (value is string && value.size() <= maxLength);
+    }
+
+    function validCatalogSource(value) {
+      return value in ['tmdb', 'anilist'];
+    }
+
+    function validMediaType(value) {
+      return value in ['movie', 'tv', 'anime', 'manga'];
+    }
+
+    function validWatchlistEntry() {
+      return request.resource.data.keys().hasOnly([
+        'source',
+        'mediaType',
+        'tmdbId',
+        'anilistId',
+        'title',
+        'posterPath',
+        'addedAt'
+      ])
+      && validCatalogSource(request.resource.data.source)
+      && validMediaType(request.resource.data.mediaType)
+      && optionalNumber(request.resource.data.tmdbId)
+      && optionalNumber(request.resource.data.anilistId)
+      && nonEmptyString(request.resource.data.title, 240)
+      && nonEmptyString(request.resource.data.posterPath, 1000)
+      && request.resource.data.addedAt is string;
+    }
+
+    function validContinueEntry() {
+      return request.resource.data.keys().hasOnly([
+        'source',
+        'mediaType',
+        'tmdbId',
+        'anilistId',
+        'season',
+        'episode',
+        'title',
+        'posterPath',
+        'backdropPath',
+        'lastWatchedAt',
+        'progressPercent',
+        'currentTimeSec'
+      ])
+      && validCatalogSource(request.resource.data.source)
+      && validMediaType(request.resource.data.mediaType)
+      && optionalNumber(request.resource.data.tmdbId)
+      && optionalNumber(request.resource.data.anilistId)
+      && optionalNumber(request.resource.data.season)
+      && optionalNumber(request.resource.data.episode)
+      && optionalNumber(request.resource.data.progressPercent)
+      && optionalNumber(request.resource.data.currentTimeSec)
+      && nonEmptyString(request.resource.data.title, 240)
+      && nonEmptyString(request.resource.data.posterPath, 1000)
+      && optionalString(request.resource.data.backdropPath, 1000)
+      && request.resource.data.lastWatchedAt is string;
+    }
+
+    function validReview(reviewId) {
+      return request.resource.data.keys().hasOnly([
+        'userId',
+        'rating',
+        'text',
+        'createdAt',
+        'updatedAt'
+      ])
+      && request.auth.uid == reviewId
+      && request.resource.data.userId == request.auth.uid
+      && request.resource.data.rating is number
+      && request.resource.data.rating >= 1
+      && request.resource.data.rating <= 5
+      && nonEmptyString(request.resource.data.text, 500)
+      && request.resource.data.createdAt is timestamp
+      && request.resource.data.updatedAt is timestamp;
+    }
+
+    function validShareToken() {
+      return request.resource.data.keys().hasOnly([
+        'source',
+        'mediaType',
+        'tmdbId',
+        'anilistId',
+        'season',
+        'episode',
+        'movieId',
+        'createdBy',
+        'createdAt',
+        'expiresAt',
+        'isDisposable',
+        'used'
+      ])
+      && validCatalogSource(request.resource.data.source)
+      && validMediaType(request.resource.data.mediaType)
+      && optionalNumber(request.resource.data.tmdbId)
+      && optionalNumber(request.resource.data.anilistId)
+      && optionalNumber(request.resource.data.season)
+      && optionalNumber(request.resource.data.episode)
+      && nonEmptyString(request.resource.data.movieId, 120)
+      && request.resource.data.createdBy == request.auth.uid
+      && request.resource.data.createdAt is timestamp
+      && request.resource.data.expiresAt is timestamp
+      && request.resource.data.isDisposable is bool
+      && request.resource.data.used is bool;
+    }
+
+    match /users/{userId} {
+      allow read, create, update, delete: if owns(userId);
+
+      match /watchlist/{entryId} {
+        allow read: if owns(userId);
+        allow create, update: if owns(userId) && validWatchlistEntry();
+        allow delete: if owns(userId);
+      }
+
+      match /continueWatching/{entryId} {
+        allow read: if owns(userId);
+        allow create, update: if owns(userId) && validContinueEntry();
+        allow delete: if owns(userId);
+      }
+
+      match /{document=**} {
+        allow read, write: if false;
+      }
+    }
+
+    match /movies/{movieId}/reviews/{reviewId} {
+      allow read: if true;
+      allow create, update: if signedIn() && validReview(reviewId);
+      allow delete: if signedIn() && request.auth.uid == reviewId;
+    }
+
+    match /shareTokens/{tokenId} {
+      allow read: if true;
+      allow create: if signedIn() && validShareToken();
+      allow update, delete: if signedIn() && resource.data.createdBy == request.auth.uid;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

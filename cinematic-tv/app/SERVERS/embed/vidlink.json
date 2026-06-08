@@ -1,0 +1,11 @@
+{
+  "id": "vidlink",
+  "name": "VidLink",
+  "enabled": true,
+  "domains": ["vidlink.pro"],
+  "idTypes": ["tmdb", "mal"],
+  "movieTemplate": "https://vidlink.pro/movie/{tmdbId}",
+  "tvTemplate": "https://vidlink.pro/tv/{tmdbId}/{season}/{episode}",
+  "animeTemplate": "https://vidlink.pro/anime/{malId}/{episode}/sub",
+  "docs": "https://vidlink.pro/"
+}

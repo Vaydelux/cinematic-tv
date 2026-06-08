@@ -1,0 +1,12 @@
+{
+  "id": "vidfast",
+  "name": "VidFast",
+  "enabled": true,
+  "domains": ["vidfast.pro", "vidfast.xyz"],
+  "idTypes": ["tmdb", "imdb"],
+  "movieTemplate": "https://vidfast.pro/movie/{id}",
+  "tvTemplate": "https://vidfast.pro/tv/{id}/{season}/{episode}",
+  "animeTemplate": null,
+  "defaultParams": { "autoPlay": "true" },
+  "docs": "https://vidfast.pro/"
+}

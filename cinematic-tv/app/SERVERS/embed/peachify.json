@@ -1,0 +1,11 @@
+{
+  "id": "peachify",
+  "name": "Peachify",
+  "enabled": true,
+  "domains": ["peachify.top"],
+  "idTypes": ["tmdb", "imdb"],
+  "movieTemplate": "https://peachify.top/embed/movie/{id}",
+  "tvTemplate": "https://peachify.top/embed/tv/{id}/{season}/{episode}",
+  "animeTemplate": null,
+  "docs": "https://peachify.top/"
+}

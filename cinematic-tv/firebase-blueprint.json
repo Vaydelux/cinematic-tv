@@ -1,0 +1,36 @@
+{
+  "entities": {
+    "Review": {
+      "title": "Review",
+      "description": "A user's review for a given movie",
+      "type": "object",
+      "properties": {
+        "rating": {
+          "type": "number",
+          "description": "Star rating out of 5"
+        },
+        "text": {
+          "type": "string",
+          "description": "Short review text"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who wrote the review"
+        },
+        "createdAt": {
+          "type": "timestamp"
+        },
+        "updatedAt": {
+          "type": "timestamp"
+        }
+      },
+      "required": ["rating", "text", "userId", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/movies/{movieId}/reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "User reviews for movies"
+    }
+  }
+}

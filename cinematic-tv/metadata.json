@@ -1,0 +1,6 @@
+{
+  "name": "Cinematic TV",
+  "description": "A premium cinematic streaming television interface with high-contrast dark mode design, featuring horizontal scrolling rails, customizable profiles, and seamless motion transitions across responsive view states.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "videasy",
+  "name": "Videasy",
+  "enabled": true,
+  "domains": ["player.videasy.net"],
+  "idTypes": ["tmdb", "anilist"],
+  "movieTemplate": "https://player.videasy.net/movie/{tmdbId}",
+  "tvTemplate": "https://player.videasy.net/tv/{tmdbId}/{season}/{episode}",
+  "animeTemplate": "https://player.videasy.net/anime/{anilistId}/{episode}",
+  "docs": "https://www.videasy.net/docs"
+}

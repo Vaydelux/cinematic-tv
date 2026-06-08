@@ -1,0 +1,10 @@
+{
+  "id": "vidsrc",
+  "name": "VidSrc",
+  "enabled": true,
+  "domains": ["vidsrc.to"],
+  "idTypes": ["tmdb", "imdb"],
+  "movieTemplate": "https://vidsrc.to/embed/movie/{id}",
+  "tvTemplate": "https://vidsrc.to/embed/tv/{id}/{season}/{episode}",
+  "docs": "https://vidsrc.to/"
+}

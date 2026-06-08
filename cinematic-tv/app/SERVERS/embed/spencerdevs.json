@@ -1,0 +1,11 @@
+{
+  "id": "spencerdevs",
+  "name": "SpenEmbed",
+  "enabled": true,
+  "domains": ["spencerdevs.xyz"],
+  "idTypes": ["tmdb", "anilist"],
+  "movieTemplate": "https://spencerdevs.xyz/movie/{tmdbId}",
+  "tvTemplate": "https://spencerdevs.xyz/tv/{tmdbId}/{season}/{episode}",
+  "animeTemplate": "https://spencerdevs.xyz/anime/{anilistId}/{episode}",
+  "docs": "https://spencerdevs.xyz/"
+}
