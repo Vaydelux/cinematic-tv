@@ -1,9 +1,10 @@
-import { Home, Search, Bookmark, Settings } from 'lucide-react';
+import { Home, Search, Bookmark, Settings, Tags } from 'lucide-react';
 
 export function BottomNav({ currentView, setCurrentView }: { currentView: string, setCurrentView: (v: string) => void }) {
   const navItems = [
     { id: 'home', icon: Home, label: 'Home' },
     { id: 'search', icon: Search, label: 'Search' },
+    { id: 'genre', icon: Tags, label: 'Genres' },
     { id: 'list', icon: Bookmark, label: 'Watchlist' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];
@@ -18,7 +19,7 @@ export function BottomNav({ currentView, setCurrentView }: { currentView: string
             key={item.id}
             onClick={() => setCurrentView(item.id)}
             aria-current={isActive ? 'page' : undefined}
-            className={`flex h-full w-20 flex-col items-center justify-center transition-colors ${
+            className={`flex h-full flex-1 flex-col items-center justify-center transition-colors ${
               isActive ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >

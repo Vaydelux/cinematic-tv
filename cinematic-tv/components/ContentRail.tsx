@@ -14,9 +14,22 @@ type Props = {
   /** Tighter padding when nested inside detail modals */
   embedded?: boolean;
   onItemHover?: (item: MediaItem | null) => void;
+  onEndReached?: () => void;
+  loadingMore?: boolean;
+  hasMore?: boolean;
 };
 
-export function ContentRail({ title, items, prefix, showProgress, embedded, onItemHover }: Props) {
+export function ContentRail({
+  title,
+  items,
+  prefix,
+  showProgress,
+  embedded,
+  onItemHover,
+  onEndReached,
+  loadingMore,
+  hasMore = false,
+}: Props) {
   const pad = embedded ? 'px-0' : 'px-5 md:px-16';
   const scrollPad = embedded ? 'pl-0' : 'pl-5 md:pl-16';
   const endPad = embedded ? 'pr-0' : 'pr-5 md:pr-16';
@@ -33,7 +46,10 @@ export function ContentRail({ title, items, prefix, showProgress, embedded, onIt
     const { scrollLeft, scrollWidth, clientWidth } = el;
     setCanLeft(scrollLeft > 8);
     setCanRight(scrollLeft < scrollWidth - clientWidth - 8);
-  }, []);
+    if (hasMore && !loadingMore && onEndReached && scrollLeft > scrollWidth - clientWidth - 360) {
+      onEndReached();
+    }
+  }, [hasMore, loadingMore, onEndReached]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -129,6 +145,11 @@ export function ContentRail({ title, items, prefix, showProgress, embedded, onIt
                 expandOnHover={!embedded}
               />
             ))}
+            {loadingMore && (
+              <div className="flex h-[180px] w-24 shrink-0 items-center justify-center">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,17 +1,23 @@
 'use client';
 
-import { useCallback, useContext, useState, type MouseEvent } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState, type MouseEvent } from 'react';
 import { AnimatePresence, motion, type Variants } from 'motion/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Download, Info, Play, RefreshCw, X } from 'lucide-react';
+import { AlertCircle, Info, Play, RefreshCw } from 'lucide-react';
 import { ContentRail } from '@/components/ContentRail';
-import { useCatalogQuery } from '@/hooks/useCatalogQuery';
+import { fetchAnilist, fetchTmdb, useCatalogQuery } from '@/hooks/useCatalogQuery';
 import { useContinueWatching } from '@/hooks/useContinueWatching';
+import { CATALOG_GENRES, getCatalogGenre } from '@/lib/catalog/genres';
 import { getWatchPath } from '@/lib/catalog/unifier';
+import { dedupeSearchResults } from '@/lib/catalog/unifier';
 import { getUserSettings } from '@/lib/user-settings';
 import { MovieContext } from '@/lib/context';
+import { mapAnilistToMediaItem } from '@/lib/anilist/mappers';
+import { mapTmdbToMediaItem } from '@/lib/tmdb/mappers';
 import type { MediaItem } from '@/lib/types';
+import type { AniListPageResponse } from '@/lib/anilist/types';
+import type { TmdbListResponse, TmdbMovieResult } from '@/lib/tmdb/types';
 
 const VIEW_EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -40,12 +46,47 @@ type HomeData = {
   };
 };
 
+type RailKey = Exclude<keyof HomeData['rails'], 'continueWatching'>;
+
+type RailState = {
+  items: MediaItem[];
+  page: number;
+  hasMore: boolean;
+  loadingMore: boolean;
+};
+
+type DiscoverResponse = {
+  items: MediaItem[];
+  hasMore: boolean;
+  nextPage?: number | null;
+};
+
+const SERVER_RAILS: { key: RailKey; title: string; prefix: string }[] = [
+  { key: 'trendingToday', title: 'Trending Today', prefix: 'today-' },
+  { key: 'trendingMovies', title: 'Trending Movies', prefix: 'tm-' },
+  { key: 'trendingTv', title: 'Trending TV', prefix: 'tt-' },
+  { key: 'popularMovies', title: 'Popular Movies', prefix: 'pm-' },
+  { key: 'popularTv', title: 'Popular TV', prefix: 'pt-' },
+  { key: 'trendingAnime', title: 'Trending Anime', prefix: 'anime-t-' },
+  { key: 'popularAnime', title: 'Popular Anime', prefix: 'anime-p-' },
+  { key: 'topRatedAnime', title: 'Top Rated Anime', prefix: 'anime-top-' },
+  { key: 'airingAnime', title: 'Currently Airing', prefix: 'anime-air-' },
+];
+
+function makeRailState(items: MediaItem[] = []): RailState {
+  return { items, page: 1, hasMore: items.length > 0, loadingMore: false };
+}
+
 export function HomeView() {
   const router = useRouter();
   const { setActiveMovie } = useContext(MovieContext);
   const [heroPreview, setHeroPreview] = useState<MediaItem | null>(null);
+  const [railStates, setRailStates] = useState<Record<string, RailState>>({});
+  const [showGenreRails, setShowGenreRails] = useState(false);
+  const genreSentinelRef = useRef<HTMLDivElement>(null);
+  const railLoadingKeysRef = useRef(new Set<string>());
   const { items: cwItems } = useContinueWatching();
-  const settings = getUserSettings();
+  const [settings] = useState(() => getUserSettings());
   const homeQuery = new URLSearchParams({
     source: settings.contentSource,
     adult: String(settings.showAdult),
@@ -56,6 +97,150 @@ export function HomeView() {
     if (!res.ok) throw new Error('Failed to load home');
     return res.json();
   });
+
+  useEffect(() => {
+    if (!data) return;
+    setRailStates((current) => {
+      const next = { ...current };
+      SERVER_RAILS.forEach((rail) => {
+        next[rail.key] = makeRailState(data.rails[rail.key]);
+      });
+      return next;
+    });
+  }, [data]);
+
+  useEffect(() => {
+    const sentinel = genreSentinelRef.current;
+    if (!sentinel || showGenreRails) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setShowGenreRails(true);
+      },
+      { rootMargin: '800px 0px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [showGenreRails]);
+
+  const setRailLoading = useCallback((key: string, loadingMore: boolean) => {
+    setRailStates((current) => ({
+      ...current,
+      [key]: { ...(current[key] ?? makeRailState()), loadingMore },
+    }));
+  }, []);
+
+  const appendRailItems = useCallback((key: string, items: MediaItem[], page: number, hasMore: boolean) => {
+    setRailStates((current) => {
+      const existing = current[key] ?? makeRailState();
+      return {
+        ...current,
+        [key]: {
+          items: dedupeSearchResults([...existing.items, ...items]),
+          page,
+          hasMore,
+          loadingMore: false,
+        },
+      };
+    });
+  }, []);
+
+  const loadMoreServerRail = useCallback(
+    async (key: RailKey) => {
+      const state = railStates[key];
+      if (!state || state.loadingMore || !state.hasMore) return;
+      if (railLoadingKeysRef.current.has(key)) return;
+      const nextPage = state.page + 1;
+      railLoadingKeysRef.current.add(key);
+      setRailLoading(key, true);
+      try {
+        let items: MediaItem[] = [];
+        let hasMore = false;
+
+        if (key === 'trendingToday' || key === 'trendingMovies' || key === 'trendingTv') {
+          const mediaType = key === 'trendingTv' ? 'tv' : 'movie';
+          const window = key === 'trendingToday' ? 'day' : 'week';
+          const data = await fetchTmdb<TmdbListResponse<TmdbMovieResult>>(`trending/${mediaType}/${window}`, {
+            page: String(nextPage),
+            language: 'en-US',
+          });
+          items = data.results.map((item) => mapTmdbToMediaItem({ ...item, media_type: mediaType }));
+          hasMore = nextPage < data.total_pages;
+        } else if (key === 'popularMovies' || key === 'popularTv') {
+          const mediaType = key === 'popularMovies' ? 'movie' : 'tv';
+          const data = await fetchTmdb<TmdbListResponse<TmdbMovieResult>>(`${mediaType}/popular`, {
+            page: String(nextPage),
+            language: 'en-US',
+          });
+          items = data.results.map((item) => mapTmdbToMediaItem({ ...item, media_type: mediaType }));
+          hasMore = nextPage < data.total_pages;
+        } else {
+          const operation =
+            key === 'trendingAnime'
+              ? 'trendingAnime'
+              : key === 'popularAnime'
+                ? 'popularAnime'
+                : key === 'topRatedAnime'
+                  ? 'topRatedAnime'
+                  : 'airingAnime';
+          const data = await fetchAnilist<AniListPageResponse>(operation, {
+            page: nextPage,
+            perPage: 20,
+            isAdult: settings.showAdult,
+          });
+          items = (data.Page?.media ?? []).map((item) => mapAnilistToMediaItem(item));
+          hasMore = Boolean(data.Page?.pageInfo?.hasNextPage);
+        }
+
+        appendRailItems(key, items, nextPage, hasMore && items.length > 0);
+      } catch {
+        appendRailItems(key, [], nextPage, false);
+      } finally {
+        railLoadingKeysRef.current.delete(key);
+      }
+    },
+    [appendRailItems, railStates, setRailLoading, settings.showAdult]
+  );
+
+  const loadMoreGenreRail = useCallback(
+    async (genreId: string) => {
+      const key = `genre:${genreId}`;
+      const state = railStates[key] ?? makeRailState();
+      if (state.loadingMore || !state.hasMore) return;
+      if (railLoadingKeysRef.current.has(key)) return;
+      const nextPage = state.items.length ? state.page + 1 : 1;
+      railLoadingKeysRef.current.add(key);
+      setRailLoading(key, true);
+      try {
+        const qs = new URLSearchParams({
+          source: settings.contentSource,
+          genre: genreId,
+          sort: 'popular',
+          page: String(nextPage),
+          adult: String(settings.showAdult),
+        });
+        const res = await fetch(`/api/discover?${qs}`);
+        if (!res.ok) throw new Error('Failed to load genre rail');
+        const data = (await res.json()) as DiscoverResponse;
+        appendRailItems(key, data.items, nextPage, data.hasMore && data.items.length > 0);
+      } catch {
+        appendRailItems(key, [], nextPage, false);
+      } finally {
+        railLoadingKeysRef.current.delete(key);
+      }
+    },
+    [appendRailItems, railStates, setRailLoading, settings.contentSource, settings.showAdult]
+  );
+
+  useEffect(() => {
+    if (!showGenreRails) return;
+    settings.homeGenreIds.forEach((genreId) => {
+      const key = `genre:${genreId}`;
+      if (!railStates[key]) {
+        setRailStates((current) => ({ ...current, [key]: makeRailState() }));
+        loadMoreGenreRail(genreId);
+      }
+    });
+  }, [loadMoreGenreRail, railStates, settings.homeGenreIds, showGenreRails]);
 
   const cwMedia: MediaItem[] = cwItems.map((e) => ({
     id: `${e.source}-${e.mediaType}-${e.tmdbId ?? e.anilistId}`,
@@ -239,15 +424,42 @@ export function HomeView() {
       >
 
         <ContentRail title="Continue Watching" items={cwMedia} prefix="cw-" showProgress onItemHover={handleItemHover} />
-        <ContentRail title="Trending Today" items={data?.rails.trendingToday ?? []} prefix="today-" onItemHover={handleItemHover} />
-        <ContentRail title="Trending Movies" items={data?.rails.trendingMovies ?? []} prefix="tm-" onItemHover={handleItemHover} />
-        <ContentRail title="Trending TV" items={data?.rails.trendingTv ?? []} prefix="tt-" onItemHover={handleItemHover} />
-        <ContentRail title="Popular Movies" items={data?.rails.popularMovies ?? []} prefix="pm-" onItemHover={handleItemHover} />
-        <ContentRail title="Popular TV" items={data?.rails.popularTv ?? []} prefix="pt-" onItemHover={handleItemHover} />
-        <ContentRail title="Trending Anime" items={data?.rails.trendingAnime ?? []} prefix="anime-t-" onItemHover={handleItemHover} />
-        <ContentRail title="Popular Anime" items={data?.rails.popularAnime ?? []} prefix="anime-p-" onItemHover={handleItemHover} />
-        <ContentRail title="Top Rated Anime" items={data?.rails.topRatedAnime ?? []} prefix="anime-top-" onItemHover={handleItemHover} />
-        <ContentRail title="Currently Airing" items={data?.rails.airingAnime ?? []} prefix="anime-air-" onItemHover={handleItemHover} />
+        {SERVER_RAILS.map((rail) => {
+          const state = railStates[rail.key] ?? makeRailState(data?.rails[rail.key]);
+          return (
+            <ContentRail
+              key={rail.key}
+              title={rail.title}
+              items={state.items}
+              prefix={rail.prefix}
+              onItemHover={handleItemHover}
+              onEndReached={() => loadMoreServerRail(rail.key)}
+              loadingMore={state.loadingMore}
+              hasMore={state.hasMore}
+            />
+          );
+        })}
+
+        <div ref={genreSentinelRef} className="h-1" aria-hidden />
+        {showGenreRails &&
+          settings.homeGenreIds.map((genreId) => {
+            const genre = getCatalogGenre(genreId);
+            if (!genre) return null;
+            const key = `genre:${genreId}`;
+            const state = railStates[key] ?? makeRailState();
+            return (
+              <ContentRail
+                key={key}
+                title={`${genre.name} Picks`}
+                items={state.items}
+                prefix={`${key}-`}
+                onItemHover={handleItemHover}
+                onEndReached={() => loadMoreGenreRail(genreId)}
+                loadingMore={state.loadingMore}
+                hasMore={state.hasMore}
+              />
+            );
+          })}
       </div>
     </motion.div>
   );

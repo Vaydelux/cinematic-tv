@@ -7,6 +7,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { Sidebar } from '@/components/Sidebar';
 import { HomeView } from '@/components/views/HomeView';
 import { SearchView } from '@/components/views/SearchView';
+import { GenreView } from '@/components/views/GenreView';
 import { ListView } from '@/components/views/ListView';
 import { SettingsView } from '@/components/views/SettingsView';
 import { MovieContext, ActiveMediaState } from '@/lib/context';
@@ -94,6 +95,7 @@ export default function CinematicApp() {
           <AnimatePresence mode="wait">
             {currentView === 'home' && <HomeView key="home" />}
             {currentView === 'search' && <SearchView key="search" />}
+            {currentView === 'genre' && <GenreView key="genre" />}
             {currentView === 'list' && <ListView key="list" />}
             {currentView === 'settings' && <SettingsView key="settings" />}
           </AnimatePresence>

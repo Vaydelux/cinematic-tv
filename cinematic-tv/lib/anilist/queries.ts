@@ -37,7 +37,18 @@ query ($page: Int, $perPage: Int, $isAdult: Boolean) {
 export const POPULAR_ANIME = `
 query ($page: Int, $perPage: Int, $isAdult: Boolean) {
   Page(page: $page, perPage: $perPage) {
+    pageInfo { hasNextPage currentPage }
     media(type: ANIME, sort: POPULARITY_DESC, isAdult: $isAdult) {
+      ${MEDIA_CARD_FIELDS}
+    }
+  }
+}`;
+
+export const DISCOVER_ANIME = `
+query ($page: Int, $perPage: Int, $isAdult: Boolean, $genreIn: [String], $sort: [MediaSort]) {
+  Page(page: $page, perPage: $perPage) {
+    pageInfo { hasNextPage currentPage }
+    media(type: ANIME, genre_in: $genreIn, sort: $sort, isAdult: $isAdult) {
       ${MEDIA_CARD_FIELDS}
     }
   }
@@ -46,6 +57,7 @@ query ($page: Int, $perPage: Int, $isAdult: Boolean) {
 export const TOP_RATED_ANIME = `
 query ($page: Int, $perPage: Int, $isAdult: Boolean) {
   Page(page: $page, perPage: $perPage) {
+    pageInfo { hasNextPage currentPage }
     media(type: ANIME, sort: SCORE_DESC, isAdult: $isAdult) {
       ${MEDIA_CARD_FIELDS}
     }
@@ -55,6 +67,7 @@ query ($page: Int, $perPage: Int, $isAdult: Boolean) {
 export const AIRING_ANIME = `
 query ($page: Int, $perPage: Int, $isAdult: Boolean) {
   Page(page: $page, perPage: $perPage) {
+    pageInfo { hasNextPage currentPage }
     media(type: ANIME, status: RELEASING, sort: POPULARITY_DESC, isAdult: $isAdult) {
       ${MEDIA_CARD_FIELDS}
     }
@@ -86,6 +99,7 @@ export const ALLOWED_OPERATIONS: Record<string, string> = {
   searchAnime: MEDIA_SEARCH,
   trendingAnime: TRENDING_ANIME,
   popularAnime: POPULAR_ANIME,
+  discoverAnime: DISCOVER_ANIME,
   topRatedAnime: TOP_RATED_ANIME,
   airingAnime: AIRING_ANIME,
   mediaById: MEDIA_BY_ID,

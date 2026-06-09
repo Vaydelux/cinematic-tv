@@ -1,9 +1,10 @@
-import { Bookmark, Clapperboard, Home, Search, Settings } from 'lucide-react';
+import { Bookmark, Clapperboard, Home, Search, Settings, Tags } from 'lucide-react';
 
 export function Sidebar({ currentView, setCurrentView }: { currentView: string, setCurrentView: (v: string) => void }) {
   const navItems = [
     { id: 'home', icon: Home, label: 'Home' },
     { id: 'search', icon: Search, label: 'Search' },
+    { id: 'genre', icon: Tags, label: 'Genres' },
     { id: 'list', icon: Bookmark, label: 'Watchlist' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];

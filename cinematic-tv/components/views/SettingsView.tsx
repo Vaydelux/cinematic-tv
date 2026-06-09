@@ -24,6 +24,7 @@ import { bootstrapUserProfile, saveProfilePreferences, type UserProfile } from '
 import { getAllServers, getEnabledServers } from '@/lib/servers';
 import { getServerHealthSummary } from '@/lib/server-health';
 import { getUserSettings, saveUserSettings } from '@/lib/user-settings';
+import { CATALOG_GENRES, DEFAULT_HOME_GENRE_IDS } from '@/lib/catalog/genres';
 import { ServerManagerModal } from '@/components/ServerManagerModal';
 import type { AppSettings, ThemeId } from '@/lib/types';
 
@@ -39,6 +40,7 @@ const LANGUAGES = [
 const REGIONS = ['US', 'GB', 'CA', 'AU', 'DE', 'FR', 'ES', 'JP'];
 const SUBTITLES = ['en', 'es', 'fr', 'de', 'ja'];
 const VIEW_EASE = [0.16, 1, 0.3, 1] as const;
+const ADULT_RESULTS_PIN = 'cinematic-tv';
 
 const viewVariants = {
   hidden: { opacity: 0, scale: 0.98, filter: 'blur(8px)', y: 20 },
@@ -185,6 +187,23 @@ export function SettingsView() {
   const handleColorMode = (mode: AppSettings['colorMode']) => {
     setColorMode(mode);
     update({ colorMode: mode });
+  };
+
+  const handleAdultResultsToggle = () => {
+    if (settings.showAdult) {
+      update({ showAdult: false });
+      return;
+    }
+
+    const pin = window.prompt('Enter PIN');
+    if (pin === ADULT_RESULTS_PIN) update({ showAdult: true });
+  };
+
+  const toggleHomeGenre = (genreId: string) => {
+    const current = new Set(settings.homeGenreIds);
+    if (current.has(genreId)) current.delete(genreId);
+    else current.add(genreId);
+    update({ homeGenreIds: Array.from(current) });
   };
 
   const handleLogin = async () => {
@@ -363,7 +382,7 @@ export function SettingsView() {
               </div>
             </div>
           </div>
-          <button type="button" onClick={() => update({ showAdult: !settings.showAdult })} className={`mt-5 flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${settings.showAdult ? 'border-primary/50 bg-primary/10' : 'border-white/10 bg-white/[0.045] hover:bg-white/[0.08]'}`}>
+          <button type="button" onClick={handleAdultResultsToggle} className={`mt-5 flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${settings.showAdult ? 'border-primary/50 bg-primary/10' : 'border-white/10 bg-white/[0.045] hover:bg-white/[0.08]'}`}>
             <span>
               <span className="block text-sm font-bold">Adult anime results</span>
               <span className="block text-xs text-on-surface-variant">Applied to AniList browse and search requests.</span>
@@ -372,6 +391,42 @@ export function SettingsView() {
               <span className={`block h-4 w-4 rounded-full bg-primary-contrast transition ${settings.showAdult ? 'translate-x-5' : ''}`} />
             </span>
           </button>
+          <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.045] p-4">
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold text-on-surface">Home genre rails</p>
+                <p className="mt-1 text-xs text-on-surface-variant">Choose which lazy genre rows can appear near the bottom of Home.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  update({
+                    homeGenreIds:
+                      settings.homeGenreIds.length === DEFAULT_HOME_GENRE_IDS.length ? [] : DEFAULT_HOME_GENRE_IDS,
+                  })
+                }
+                className="rounded-lg bg-white/[0.08] px-3 py-2 text-xs font-bold text-on-surface-variant transition hover:bg-white/[0.12] hover:text-on-surface"
+              >
+                {settings.homeGenreIds.length === DEFAULT_HOME_GENRE_IDS.length ? 'Clear all' : 'Select all'}
+              </button>
+            </div>
+            <div className="flex max-h-36 flex-wrap gap-2 overflow-y-auto pr-1 hide-scrollbar">
+              {CATALOG_GENRES.map((genre) => (
+                <button
+                  key={genre.id}
+                  type="button"
+                  onClick={() => toggleHomeGenre(genre.id)}
+                  className={`rounded-lg border px-3 py-2 text-xs font-bold uppercase tracking-wide transition ${
+                    settings.homeGenreIds.includes(genre.id)
+                      ? 'border-primary/50 bg-primary/10 text-primary'
+                      : 'border-white/10 bg-white/[0.04] text-on-surface-variant hover:bg-white/[0.08]'
+                  }`}
+                >
+                  {genre.name}
+                </button>
+              ))}
+            </div>
+          </div>
         </Panel>
 
         <Panel icon={Server} eyebrow="Playback" title="Embed Servers">

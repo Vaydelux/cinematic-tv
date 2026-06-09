@@ -79,6 +79,7 @@ export type AppSettings = {
   contentSource: 'all' | 'tmdb' | 'anilist';
   showAdult: boolean;
   iframeSandboxMode: IframeSandboxMode;
+  homeGenreIds: string[];
 };
 
 export type Movie = MediaItem;

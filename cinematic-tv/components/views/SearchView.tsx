@@ -8,6 +8,7 @@ import { fetchAnilist, fetchTmdb } from '@/hooks/useCatalogQuery';
 import { mapTmdbToMediaItem } from '@/lib/tmdb/mappers';
 import { mapAnilistToMediaItem } from '@/lib/anilist/mappers';
 import { dedupeSearchResults } from '@/lib/catalog/unifier';
+import { CATALOG_GENRES, getCatalogGenre } from '@/lib/catalog/genres';
 import { getUserSettings } from '@/lib/user-settings';
 import type { MediaItem } from '@/lib/types';
 import type { TmdbListResponse, TmdbMovieResult } from '@/lib/tmdb/types';
@@ -21,20 +22,39 @@ const viewVariants = {
   exit: { opacity: 0, scale: 0.98, filter: 'blur(8px)', y: -20, transition: { duration: 0.4, ease: VIEW_EASE } },
 } satisfies Variants;
 
-const GENRES = ['All', 'Action', 'Sci-Fi', 'Thriller', 'Drama', 'Fantasy', 'Horror', 'Comedy', 'Animation'];
+type DiscoverResponse = {
+  items: MediaItem[];
+  hasMore: boolean;
+  nextPage?: number | null;
+};
 
 export function SearchView() {
   const settings = getUserSettings();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGenre, setSelectedGenre] = useState('All');
+  const [selectedGenre, setSelectedGenre] = useState('all');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'tmdb' | 'anilist'>(
     settings.contentSource
   );
   const [results, setResults] = useState<MediaItem[]>([]);
+  const [defaultItems, setDefaultItems] = useState<MediaItem[]>([]);
+  const [defaultPage, setDefaultPage] = useState(1);
+  const [defaultHasMore, setDefaultHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [defaultLoading, setDefaultLoading] = useState(true);
+  const [defaultLoadingMore, setDefaultLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [defaultError, setDefaultError] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<{ start: () => void; stop: () => void } | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const trimmedSearch = searchTerm.trim();
+  const showingSearchResults = trimmedSearch.length >= 2;
+  const visibleItems = (showingSearchResults ? results : defaultItems).filter(
+    (movie) => {
+      const genre = getCatalogGenre(selectedGenre);
+      return !genre || movie.genres?.includes(genre.name) || movie.genres?.includes(genre.anilistGenre ?? '');
+    }
+  );
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -77,9 +97,78 @@ export function SearchView() {
     }
   }, []);
 
+  const loadDefaultItems = useCallback(async () => {
+    setDefaultLoading(true);
+    setDefaultError(null);
+    setDefaultPage(1);
+    setDefaultHasMore(true);
+    try {
+      const qs = new URLSearchParams({
+        source: sourceFilter,
+        sort: 'popular',
+        adult: String(settings.showAdult),
+      });
+      if (selectedGenre !== 'all') qs.set('genre', selectedGenre);
+      const res = await fetch(`/api/discover?${qs}`);
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error((payload as { error?: string }).error ?? `Discovery failed (${res.status})`);
+      }
+      const data = (await res.json()) as DiscoverResponse;
+      setDefaultItems(data.items);
+      setDefaultHasMore(data.hasMore);
+      setDefaultPage(data.nextPage ? data.nextPage - 1 : 1);
+    } catch (error) {
+      setDefaultItems([]);
+      setDefaultError(error instanceof Error ? error.message : 'Discovery failed');
+    } finally {
+      setDefaultLoading(false);
+    }
+  }, [selectedGenre, sourceFilter, settings.showAdult]);
+
+  const loadMoreDefaultItems = useCallback(async () => {
+    if (defaultLoading || defaultLoadingMore || !defaultHasMore) return;
+
+    const nextPage = defaultPage + 1;
+    setDefaultLoadingMore(true);
+    setDefaultError(null);
+    try {
+      const qs = new URLSearchParams({
+        source: sourceFilter,
+        sort: 'popular',
+        page: String(nextPage),
+        adult: String(settings.showAdult),
+      });
+      if (selectedGenre !== 'all') qs.set('genre', selectedGenre);
+      const res = await fetch(`/api/discover?${qs}`);
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error((payload as { error?: string }).error ?? `Could not load more titles (${res.status})`);
+      }
+      const data = (await res.json()) as DiscoverResponse;
+      setDefaultHasMore(data.hasMore);
+      setDefaultPage(nextPage);
+      setDefaultItems((current) => dedupeSearchResults([...current, ...data.items]));
+    } catch (error) {
+      setDefaultError(error instanceof Error ? error.message : 'Could not load more titles');
+    } finally {
+      setDefaultLoadingMore(false);
+    }
+  }, [
+    defaultHasMore,
+    defaultLoading,
+    defaultLoadingMore,
+    defaultPage,
+    selectedGenre,
+    sourceFilter,
+    settings.showAdult,
+  ]);
+
   const doSearch = useCallback(async (query: string) => {
     if (query.length < 2) {
       setResults([]);
+      setLoading(false);
+      setErrorMessage(null);
       return;
     }
     setLoading(true);
@@ -107,8 +196,9 @@ export function SearchView() {
       }
 
       let filtered = dedupeSearchResults(items);
-      if (selectedGenre !== 'All') {
-        filtered = filtered.filter((m) => m.genres?.includes(selectedGenre));
+      const genre = getCatalogGenre(selectedGenre);
+      if (genre) {
+        filtered = filtered.filter((m) => m.genres?.includes(genre.name) || m.genres?.includes(genre.anilistGenre ?? ''));
       }
       setResults(filtered);
     } catch (error) {
@@ -123,6 +213,25 @@ export function SearchView() {
     const timer = setTimeout(() => doSearch(searchTerm), 300);
     return () => clearTimeout(timer);
   }, [searchTerm, doSearch]);
+
+  useEffect(() => {
+    if (!searchTerm.trim()) loadDefaultItems();
+  }, [loadDefaultItems, searchTerm]);
+
+  useEffect(() => {
+    if (trimmedSearch) return undefined;
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) loadMoreDefaultItems();
+      },
+      { rootMargin: '600px 0px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [loadMoreDefaultItems, trimmedSearch]);
 
   const toggleVoice = () => {
     if (!recognitionRef.current) return;
@@ -180,42 +289,66 @@ export function SearchView() {
         </div>
 
         <div className="mt-2 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-          {GENRES.map((genre) => (
+          {[{ id: 'all', name: 'All' }, ...CATALOG_GENRES].map((genre) => (
             <button
-              key={genre}
-              onClick={() => setSelectedGenre(genre)}
+              key={genre.id}
+              onClick={() => setSelectedGenre(genre.id)}
               className={`px-3 py-2 rounded-md whitespace-nowrap text-xs font-bold uppercase tracking-wide transition ${
-                selectedGenre === genre ? 'bg-white text-black' : 'bg-white/[0.06] text-on-surface-variant hover:bg-white/10'
+                selectedGenre === genre.id ? 'bg-white text-black' : 'bg-white/[0.06] text-on-surface-variant hover:bg-white/10'
               }`}
             >
-              {genre}
+              {genre.name}
             </button>
           ))}
         </div>
       </div>
 
-      {errorMessage && (
+      {(errorMessage || (!trimmedSearch && defaultError)) && (
         <div className="mb-6 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-on-surface">
-          {errorMessage}
+          {errorMessage ?? defaultError}
         </div>
       )}
 
-      {loading && (
+      {(loading || (!trimmedSearch && defaultLoading)) && (
         <div className="flex justify-center py-12">
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5 pb-24">
-        {results.map((movie) => (
-          <MovieCard key={`search-${movie.id}`} movie={movie} className="!min-w-0" layoutIdPrefix="search-" />
+        {!loading && !trimmedSearch && defaultItems.length > 0 && (
+          <div className="col-span-full mb-1 flex items-center gap-3">
+            <span className="h-5 w-1 rounded-full bg-primary" />
+            <h2 className="font-display text-xl font-bold tracking-tight text-on-surface md:text-2xl">Popular right now</h2>
+          </div>
+        )}
+        {visibleItems.map((movie) => (
+          <MovieCard
+            key={`${showingSearchResults ? 'search' : 'popular'}-${movie.id}`}
+            movie={movie}
+            className="!min-w-0"
+            layoutIdPrefix={showingSearchResults ? 'search-' : 'popular-'}
+          />
         ))}
-        {!loading && searchTerm.length >= 2 && results.length === 0 && (
+        {!loading && showingSearchResults && visibleItems.length === 0 && (
           <div className="col-span-full pt-16 text-center text-on-surface-variant">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-white/[0.06]">
               <SearchIcon className="h-6 w-6" />
             </div>
             No titles found.
+          </div>
+        )}
+        {!defaultLoading && !trimmedSearch && defaultItems.length > 0 && visibleItems.length === 0 && (
+          <div className="col-span-full pt-16 text-center text-on-surface-variant">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-white/[0.06]">
+              <Film className="h-6 w-6" />
+            </div>
+            No popular titles match this filter.
+          </div>
+        )}
+        {!trimmedSearch && defaultItems.length > 0 && (
+          <div ref={loadMoreRef} className="col-span-full flex min-h-20 items-center justify-center py-6">
+            {defaultLoadingMore && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
           </div>
         )}
       </div>

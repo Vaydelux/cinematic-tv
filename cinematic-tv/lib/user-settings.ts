@@ -1,6 +1,7 @@
 'use client';
 
 import type { AppSettings } from '@/lib/types';
+import { DEFAULT_HOME_GENRE_IDS } from '@/lib/catalog/genres';
 
 const KEY = 'cinematic-settings';
 const LEGACY_THEME_KEY = 'app-theme';
@@ -48,6 +49,10 @@ export function normalizeSettings(value: Partial<AppSettings> | null | undefined
     contentSource: normalizeContentSource(parsed.contentSource),
     showAdult: Boolean(parsed.showAdult),
     iframeSandboxMode: normalizeIframeSandboxMode(parsed.iframeSandboxMode),
+    homeGenreIds:
+      parsed.homeGenreIds === undefined
+        ? DEFAULT_HOME_GENRE_IDS
+        : normalizeStringArray(parsed.homeGenreIds).filter((id) => DEFAULT_HOME_GENRE_IDS.includes(id)),
   };
 }
 
@@ -70,6 +75,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   contentSource: 'all',
   showAdult: false,
   iframeSandboxMode: 'strict',
+  homeGenreIds: DEFAULT_HOME_GENRE_IDS,
 };
 
 export function getUserSettings(): AppSettings {
@@ -114,6 +120,9 @@ export function saveUserSettings(partial: Partial<AppSettings>) {
     serverOrder: normalizeStringArray(partial.serverOrder ?? current.serverOrder),
     contentSource: normalizeContentSource(partial.contentSource ?? current.contentSource),
     iframeSandboxMode: normalizeIframeSandboxMode(partial.iframeSandboxMode ?? current.iframeSandboxMode),
+    homeGenreIds: normalizeStringArray(partial.homeGenreIds ?? current.homeGenreIds).filter((id) =>
+      DEFAULT_HOME_GENRE_IDS.includes(id)
+    ),
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
