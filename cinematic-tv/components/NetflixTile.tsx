@@ -53,7 +53,7 @@ export const NetflixTile = memo(function NetflixTile({
   const handleEnter = () => {
     setHovered(true);
     onItemHover?.(movie);
-    if (!expandOnHover || window.innerWidth < 768) return;
+    if (!expandOnHover || window.innerWidth < 768 || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     clearHoverTimer();
     hoverTimer.current = setTimeout(() => setExpanded(true), HOVER_DELAY_MS);
   };
@@ -72,11 +72,11 @@ export const NetflixTile = memo(function NetflixTile({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.4, delay: Math.min(staggerIndex * 0.035, 0.3), ease: [0.16, 1, 0.3, 1] }}
-      whileHover={compact ? { y: -4, scale: 1.015 } : undefined}
+      whileHover={undefined}
       className={`group relative aspect-video shrink-0 overflow-visible ${
         compact
-          ? 'w-[62vw] min-w-[220px] max-w-[320px] sm:w-[300px] md:h-[160px] md:w-[284px]'
-          : 'w-[48vw] min-w-[158px] max-w-[280px] md:h-[178px] md:w-[316px] md:max-w-none'
+          ? 'w-[72vw] min-w-[210px] max-w-[300px] sm:w-[280px] md:h-[150px] md:w-[268px]'
+          : 'w-[74vw] min-w-[220px] max-w-[340px] sm:w-[42vw] sm:min-w-[280px] sm:max-w-[340px] md:h-[178px] md:w-[316px] md:max-w-none'
       }`}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
@@ -130,7 +130,7 @@ export const NetflixTile = memo(function NetflixTile({
               </span>
             )}
             {!expanded && (
-              <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-3 opacity-100 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100">
+              <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-3 opacity-100 transition-opacity duration-300 md:opacity-0 md:[@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100">
                 <p className="truncate font-display text-sm font-bold text-white drop-shadow">{movie.title}</p>
               </div>
             )}

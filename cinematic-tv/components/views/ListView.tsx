@@ -29,8 +29,8 @@ export function ListView() {
   }));
 
   return (
-    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="mx-auto max-w-7xl px-4 py-8 sm:px-5 md:px-10 md:py-12">
-      <div className="mb-8 flex items-end justify-between gap-4">
+    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="mx-auto min-w-0 max-w-7xl px-4 py-6 sm:px-5 sm:py-8 md:px-10 md:py-12">
+      <div className="mb-8 flex min-w-0 items-end justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-primary">Saved titles</p>
           <h1 className="font-display text-3xl font-bold sm:text-4xl md:text-5xl">Your Watchlist</h1>
@@ -46,7 +46,7 @@ export function ListView() {
           <p className="mt-2 max-w-sm text-sm text-on-surface-variant">Add titles from any detail page and they will appear here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5 pb-24">
+        <div className="grid min-w-0 grid-cols-1 gap-4 pb-24 min-[540px]:grid-cols-2 md:gap-5 xl:grid-cols-3 2xl:grid-cols-4">
           {mediaItems.map((movie) => (
             <MovieCard
               key={movie.id}

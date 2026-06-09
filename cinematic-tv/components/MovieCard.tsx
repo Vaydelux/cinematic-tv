@@ -46,7 +46,7 @@ export const MovieCard = memo(function MovieCard({
           openInfo();
         }
       }}
-      className={`group relative aspect-[16/9] min-w-[280px] cursor-pointer overflow-hidden rounded-xl bg-surface-container shadow-lg ring-1 ring-white/10 transition-all duration-300 ease-out hover:z-20 hover:scale-[1.035] hover:shadow-[0_18px_46px_rgba(0,0,0,0.62),inset_0_0_0_1px_rgba(255,255,255,0.16)] md:min-w-[320px] ${className}`}
+      className={`group relative aspect-[16/9] w-full min-w-0 cursor-pointer overflow-hidden rounded-xl bg-surface-container shadow-lg ring-1 ring-white/10 transition-all duration-300 ease-out md:[@media(hover:hover)_and_(pointer:fine)]:hover:z-20 md:[@media(hover:hover)_and_(pointer:fine)]:hover:scale-[1.035] md:[@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[0_18px_46px_rgba(0,0,0,0.62),inset_0_0_0_1px_rgba(255,255,255,0.16)] ${className}`}
       onMouseEnter={() => {
         setHovered(true);
         setHoveredMovie(movie);
@@ -61,7 +61,7 @@ export const MovieCard = memo(function MovieCard({
           src={visualSrc}
           alt={movie.title}
           fill
-          className={`object-cover transition-all duration-500 ease-out group-hover:scale-105 ${trailerKey ? 'opacity-0' : 'opacity-100'}`}
+          className={`object-cover transition-all duration-500 ease-out md:[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105 ${trailerKey ? 'opacity-0' : 'opacity-100'}`}
           sizes="(max-width: 768px) 280px, 320px"
         />
       ) : (
@@ -71,7 +71,7 @@ export const MovieCard = memo(function MovieCard({
             alt=""
             fill
             aria-hidden
-            className={`scale-110 object-cover opacity-45 blur-md transition-transform duration-500 ease-out group-hover:scale-[1.15] ${trailerKey ? 'opacity-0' : ''}`}
+            className={`scale-110 object-cover opacity-45 blur-md transition-transform duration-500 ease-out md:[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.15] ${trailerKey ? 'opacity-0' : ''}`}
             sizes="(max-width: 768px) 280px, 320px"
           />
           <div className="absolute inset-0 bg-black/25" />
@@ -79,7 +79,7 @@ export const MovieCard = memo(function MovieCard({
             src={movie.image}
             alt={movie.title}
             fill
-            className={`object-contain p-2 drop-shadow-2xl transition-all duration-500 ease-out group-hover:scale-[1.04] ${trailerKey ? 'opacity-0' : 'opacity-100'}`}
+            className={`object-contain p-2 drop-shadow-2xl transition-all duration-500 ease-out md:[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.04] ${trailerKey ? 'opacity-0' : 'opacity-100'}`}
             sizes="(max-width: 768px) 280px, 320px"
           />
         </>
@@ -101,10 +101,10 @@ export const MovieCard = memo(function MovieCard({
       )}
 
       <div
-        className="absolute inset-0 z-10 bg-gradient-to-t from-black/95 via-black/35 to-transparent opacity-85 shadow-[inset_0_-110px_90px_rgba(0,0,0,0.78)] transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100"
+        className="absolute inset-0 z-10 bg-gradient-to-t from-black/95 via-black/35 to-transparent opacity-85 shadow-[inset_0_-110px_90px_rgba(0,0,0,0.78)] transition-opacity duration-300 md:opacity-0 md:[@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100"
       />
 
-      <div className="absolute inset-x-0 bottom-0 z-20 flex max-h-full flex-col justify-end overflow-hidden p-4 transition-all duration-300 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
+      <div className="absolute inset-x-0 bottom-0 z-20 flex max-h-full flex-col justify-end overflow-hidden p-3 transition-all duration-300 sm:p-4 md:translate-y-3 md:opacity-0 md:[@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-y-0 md:[@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100">
         <div className="mb-3 flex items-center gap-2">
           <button
             type="button"

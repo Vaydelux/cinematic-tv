@@ -243,8 +243,8 @@ export function SearchView() {
   };
 
   return (
-    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="mx-auto max-w-7xl px-4 py-8 sm:px-5 md:px-10 md:py-12">
-      <div className="mb-6 flex items-end justify-between gap-4">
+    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="mx-auto min-w-0 max-w-7xl px-4 py-6 sm:px-5 sm:py-8 md:px-10 md:py-12">
+      <div className="mb-6 flex min-w-0 items-end justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-primary">Discovery</p>
           <h1 className="font-display text-3xl font-bold text-on-surface sm:text-4xl md:text-5xl">Search</h1>
@@ -255,7 +255,7 @@ export function SearchView() {
         </div>
       </div>
 
-      <div className="cinema-panel cinema-ring mb-8 rounded-lg p-4 md:p-5">
+      <div className="cinema-panel cinema-ring mb-8 min-w-0 rounded-lg p-4 md:p-5">
         <div className="relative">
           <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-on-surface-variant" />
           <input
@@ -288,12 +288,12 @@ export function SearchView() {
           ))}
         </div>
 
-        <div className="mt-2 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+        <div className="mt-2 flex min-w-0 gap-2 overflow-x-auto pb-1 hide-scrollbar sm:flex-wrap sm:overflow-visible">
           {[{ id: 'all', name: 'All' }, ...CATALOG_GENRES].map((genre) => (
             <button
               key={genre.id}
               onClick={() => setSelectedGenre(genre.id)}
-              className={`px-3 py-2 rounded-md whitespace-nowrap text-xs font-bold uppercase tracking-wide transition ${
+              className={`shrink-0 px-3 py-2 rounded-md whitespace-nowrap text-xs font-bold uppercase tracking-wide transition ${
                 selectedGenre === genre.id ? 'bg-white text-black' : 'bg-white/[0.06] text-on-surface-variant hover:bg-white/10'
               }`}
             >
@@ -315,7 +315,7 @@ export function SearchView() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5 pb-24">
+      <div className="grid min-w-0 grid-cols-1 gap-4 pb-24 min-[540px]:grid-cols-2 md:gap-5 xl:grid-cols-3 2xl:grid-cols-4">
         {!loading && !trimmedSearch && defaultItems.length > 0 && (
           <div className="col-span-full mb-1 flex items-center gap-3">
             <span className="h-5 w-1 rounded-full bg-primary" />

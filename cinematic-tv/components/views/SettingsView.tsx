@@ -87,14 +87,14 @@ function Panel({
   className?: string;
 }) {
   return (
-    <section className={`premium-panel rounded-xl p-5 md:p-6 ${className}`}>
-      <div className="mb-5 flex items-start gap-3">
+    <section className={`premium-panel min-w-0 rounded-xl p-4 sm:p-5 md:p-6 ${className}`}>
+      <div className="mb-5 flex min-w-0 items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-contrast shadow-lg shadow-black/25">
           <Icon className="h-5 w-5" />
         </span>
-        <div>
+        <div className="min-w-0">
           {eyebrow && <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">{eyebrow}</p>}
-          <h2 className="font-display text-xl font-bold text-on-surface md:text-2xl">{title}</h2>
+          <h2 className="break-words font-display text-xl font-bold text-on-surface md:text-2xl">{title}</h2>
         </div>
       </div>
       {children}
@@ -126,8 +126,8 @@ function OptionButton({
 
 function StatusRow({ label, value, good }: { label: string; value: string; good?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.045] px-3 py-2.5 text-sm">
-      <span className="text-on-surface-variant">{label}</span>
+    <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-white/[0.045] px-3 py-2.5 text-sm">
+      <span className="truncate text-on-surface-variant">{label}</span>
       <span className={good ? 'font-bold text-emerald-300' : 'font-medium text-on-surface'}>{value}</span>
     </div>
   );
@@ -238,25 +238,25 @@ export function SettingsView() {
   };
 
   return (
-    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="mx-auto max-w-7xl px-4 py-8 pb-28 sm:px-6 md:px-10 md:py-12">
-      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
+    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="mx-auto min-w-0 max-w-7xl px-4 py-6 pb-28 sm:px-6 sm:py-8 md:px-10 md:py-12">
+      <div className="mb-8 flex min-w-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
           <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-primary">
             <Sparkles className="h-3.5 w-3.5" />
             Control room
           </p>
-          <h1 className="font-display text-4xl font-bold tracking-tight text-on-surface sm:text-5xl md:text-6xl">Settings</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-on-surface sm:text-5xl md:text-6xl">Settings</h1>
           <p className="mt-2 max-w-2xl text-sm text-on-surface-variant md:text-base">
             Tune the cinema, sync your profile, and keep the deployment ready for Vercel.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:flex">
+        <div className="grid min-w-0 grid-cols-2 gap-2 sm:flex">
           <StatusRow label="TMDB" value={health?.tmdbConfigured ? 'Connected' : 'Missing'} good={health?.tmdbConfigured} />
           <StatusRow label="Servers" value={`${servers.length}/${totalServers}`} good={servers.length > 0} />
         </div>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
+      <div className="grid min-w-0 gap-5 xl:grid-cols-[0.95fr_1.05fr]">
         <Panel icon={UserCircle} eyebrow="Profile" title="Account">
           {accountError && (
             <div className="mb-4 flex gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-red-100">

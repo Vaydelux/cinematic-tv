@@ -28,7 +28,7 @@ const viewVariants = {
 } satisfies Variants;
 
 const HERO_HEIGHT =
-  'h-[76vh] min-h-[560px] max-h-[880px] sm:min-h-[600px] md:h-[80vh]';
+  'h-[70vh] min-h-[460px] max-h-[760px] sm:min-h-[540px] md:h-[80vh] md:min-h-[600px] md:max-h-[880px]';
 
 type HomeData = {
   hero: MediaItem | null;
@@ -386,7 +386,7 @@ export function HomeView() {
 
   if (loading) {
     return (
-      <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="w-full min-h-screen px-4 py-8 sm:px-6 md:px-16 md:py-10">
+      <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="w-full min-h-screen px-4 py-6 sm:px-6 sm:py-8 md:px-16 md:py-10">
         <div className="h-[56vh] min-h-[380px] rounded-2xl bg-surface-container animate-pulse cinema-ring sm:min-h-[460px]" />
         <div className="mt-8 space-y-5">
           {[1, 2, 3].map((row) => (
@@ -426,7 +426,7 @@ export function HomeView() {
   }
 
   return (
-    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="relative w-full min-h-screen min-w-0 bg-transparent pb-28">
+    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="relative w-full min-h-screen min-w-0 overflow-x-hidden bg-transparent pb-28">
       {displayHero && (
         <div
           className={`pointer-events-none absolute inset-x-0 top-0 z-[1] ${HERO_HEIGHT} overflow-hidden`}
@@ -457,7 +457,7 @@ export function HomeView() {
             </motion.div>
           </AnimatePresence>
 
-          <section className="absolute inset-x-0 bottom-0 flex items-end px-4 pb-16 sm:px-6 md:px-16 md:pb-24">
+          <section className="absolute inset-x-0 bottom-0 flex items-end px-4 pb-12 sm:px-6 sm:pb-16 md:px-16 md:pb-24">
             <AnimatePresence mode="wait">
               <motion.div
                 key={displayHero.id}
@@ -465,7 +465,7 @@ export function HomeView() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="relative flex max-w-4xl flex-col gap-4"
+                className="relative flex min-w-0 max-w-4xl flex-col gap-3 sm:gap-4"
               >
                 <div className="flex flex-wrap gap-2 text-[11px] md:text-xs font-bold tracking-widest uppercase text-white/70">
                   {!isHoverPreview && (
@@ -477,7 +477,7 @@ export function HomeView() {
                     </span>
                   ))}
                 </div>
-                <h1 className="max-w-4xl break-words font-display text-4xl font-black leading-[0.92] tracking-tight text-white drop-shadow-2xl sm:text-5xl md:text-7xl">
+                <h1 className="max-w-4xl break-words font-display text-3xl font-black leading-[0.95] tracking-tight text-white drop-shadow-2xl min-[420px]:text-4xl sm:text-5xl md:text-7xl">
                   {displayHero.title}
                 </h1>
                 <div className="flex flex-wrap gap-2 text-xs font-bold text-white/75">
@@ -491,18 +491,18 @@ export function HomeView() {
                     {displayHero.description}
                   </p>
                 )}
-                <div className="pointer-events-auto mt-4 flex flex-wrap items-center gap-3">
+                <div className="pointer-events-auto mt-2 flex flex-wrap items-center gap-2 sm:mt-4 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => router.push(getWatchPath(displayHero))}
-                    className="flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-black text-black shadow-xl transition hover:bg-white/90 active:scale-95 sm:px-7"
+                    className="flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-black text-black shadow-xl transition hover:bg-white/90 active:scale-95 sm:px-7 sm:py-3"
                   >
                     <Play className="w-5 h-5 fill-current" /> Play
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveMovie({ ...displayHero, matchedLayoutId: `hero-${displayHero.id}` })}
-                    className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/45 px-5 py-3 text-sm font-black text-white shadow-xl backdrop-blur transition hover:bg-black/60 active:scale-95 sm:px-7"
+                    className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/45 px-4 py-2.5 text-sm font-black text-white shadow-xl backdrop-blur transition hover:bg-black/60 active:scale-95 sm:px-7 sm:py-3"
                   >
                     <Info className="w-5 h-5" /> More Info
                   </button>

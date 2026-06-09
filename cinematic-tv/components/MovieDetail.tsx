@@ -139,7 +139,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 pointer-events-none sm:p-4 md:p-8">
+    <div className="fixed inset-0 z-[100] flex items-stretch justify-center p-0 pointer-events-none sm:items-center sm:p-4 md:p-8">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -149,7 +149,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
       />
       <motion.div
         layoutId={movie.matchedLayoutId}
-        className="premium-panel pointer-events-auto relative flex h-[94vh] w-full max-w-5xl flex-col overflow-y-auto overflow-x-hidden rounded-2xl shadow-2xl hide-scrollbar sm:h-[92vh]"
+        className="premium-panel pointer-events-auto relative flex h-full w-full max-w-5xl flex-col overflow-y-auto overflow-x-hidden rounded-none shadow-2xl hide-scrollbar sm:h-[92vh] sm:rounded-2xl"
       >
         <button
           onClick={onClose}
@@ -159,7 +159,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
           <X className="w-6 h-6" />
         </button>
 
-        <div className="relative w-full aspect-[4/3] md:aspect-[21/9] shrink-0">
+        <div className="relative min-h-[360px] w-full shrink-0 aspect-[16/10] sm:aspect-[4/3] sm:min-h-0 md:aspect-[21/9]">
           <div className="absolute inset-0 z-0">
             {detail.trailerKey ? (
               <TrailerEmbed
@@ -182,28 +182,28 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
           <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-surface via-background/60 to-transparent" />
           <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-r from-surface via-transparent to-transparent opacity-80" />
 
-          <div className="pointer-events-none absolute inset-0 z-30 flex w-full flex-col justify-end p-5 sm:p-8 md:p-12">
-            <div className="flex flex-wrap gap-2 text-xs font-bold tracking-widest uppercase text-white/70 mb-4">
+          <div className="pointer-events-none absolute inset-0 z-30 flex w-full flex-col justify-end p-4 sm:p-8 md:p-12">
+            <div className="mb-3 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-widest text-white/70 sm:mb-4 sm:text-xs">
               {detail.genres?.slice(0, 4).map((g) => (
                 <span key={g} className="rounded border border-white/10 bg-white/[0.08] px-2 py-1">
                   {g}
                 </span>
               ))}
             </div>
-            <h2 className="mb-4 break-words font-display text-3xl font-bold leading-tight tracking-tight text-white drop-shadow-lg sm:text-4xl md:text-6xl">
+            <h2 className="mb-3 max-w-full break-words font-display text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-lg min-[420px]:text-3xl sm:mb-4 sm:text-4xl md:text-6xl">
               {detail.title}
             </h2>
-            <p className="text-sm text-white/60 mb-4">{detail.meta}</p>
+            <p className="mb-3 text-sm text-white/60 sm:mb-4">{detail.meta}</p>
             <div className="pointer-events-auto flex flex-wrap items-center gap-3">
               <button
                 onClick={handlePlay}
-                className="flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-black text-black shadow-xl transition hover:bg-white/90 active:scale-95 sm:px-7"
+                className="flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-black text-black shadow-xl transition hover:bg-white/90 active:scale-95 sm:px-7 sm:py-3"
               >
                 <Play className="w-5 h-5 fill-current" /> Play
               </button>
               <button
                 onClick={() => toggle(detail)}
-                className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/45 px-5 py-3 text-sm font-black text-white shadow-xl backdrop-blur transition hover:bg-black/60 active:scale-95 sm:px-7"
+                className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/45 px-4 py-2.5 text-sm font-black text-white shadow-xl backdrop-blur transition hover:bg-black/60 active:scale-95 sm:px-7 sm:py-3"
               >
                 {inList ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                 {inList ? 'In List' : 'My List'}
@@ -212,7 +212,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
                 onClick={handleShare}
                 disabled={sharing || !auth?.currentUser}
                 title={auth?.currentUser ? 'Copy share link' : 'Sign in to share'}
-                className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/45 px-5 py-3 text-sm font-black text-white shadow-xl backdrop-blur transition hover:bg-black/60 active:scale-95 disabled:opacity-40"
+                className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/45 px-4 py-2.5 text-sm font-black text-white shadow-xl backdrop-blur transition hover:bg-black/60 active:scale-95 disabled:opacity-40 sm:px-7 sm:py-3"
               >
                 <Share2 className="w-5 h-5" />
                 {shareUrl ? 'Copied!' : 'Share'}
@@ -225,7 +225,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="relative z-30 mx-auto w-full max-w-4xl flex-1 p-5 sm:p-8 md:p-12"
+          className="relative z-30 mx-auto w-full max-w-4xl flex-1 p-4 sm:p-8 md:p-12"
         >
           {loading ? (
             <div className="animate-pulse h-24 bg-surface-container rounded-lg mb-8" />

@@ -30,9 +30,9 @@ export function ContentRail({
   loadingMore,
   hasMore = false,
 }: Props) {
-  const pad = embedded ? 'px-0' : 'px-5 md:px-16';
-  const scrollPad = embedded ? 'pl-0' : 'pl-5 md:pl-16';
-  const endPad = embedded ? 'pr-0' : 'pr-5 md:pr-16';
+  const pad = embedded ? 'px-0' : 'px-4 sm:px-5 md:px-16';
+  const scrollPad = embedded ? 'pl-0' : 'pl-4 sm:pl-5 md:pl-16';
+  const endPad = embedded ? 'pr-0' : 'pr-4 sm:pr-5 md:pr-16';
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
@@ -81,9 +81,9 @@ export function ContentRail({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className={`mb-3 flex items-center gap-3 ${pad}`}>
+      <div className={`mb-3 flex min-w-0 items-center gap-3 ${pad}`}>
         <span className="h-5 w-1 rounded-full bg-primary" />
-        <h2 className="font-display text-xl font-bold tracking-tight text-on-surface md:text-2xl">{title}</h2>
+        <h2 className="min-w-0 truncate font-display text-lg font-bold tracking-tight text-on-surface sm:text-xl md:text-2xl">{title}</h2>
       </div>
 
       {/* Expansion zone leaves headroom for hover growth. */}
@@ -92,7 +92,7 @@ export function ContentRail({
           type="button"
           onClick={() => scroll('left')}
           aria-label={`Scroll ${title} left`}
-          className={`absolute left-0 top-0 bottom-0 z-40 flex w-14 items-center justify-center bg-gradient-to-r from-background via-background/80 to-transparent text-white transition-all duration-300 md:w-24 ${
+          className={`absolute left-0 top-0 bottom-0 z-40 hidden w-14 items-center justify-center bg-gradient-to-r from-background via-background/80 to-transparent text-white transition-all duration-300 md:flex md:w-24 ${
             canLeft && hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -105,7 +105,7 @@ export function ContentRail({
           type="button"
           onClick={() => scroll('right')}
           aria-label={`Scroll ${title} right`}
-          className={`absolute right-0 top-0 bottom-0 z-40 flex w-14 items-center justify-center bg-gradient-to-l from-background via-background/80 to-transparent text-white transition-all duration-300 md:w-24 ${
+          className={`absolute right-0 top-0 bottom-0 z-40 hidden w-14 items-center justify-center bg-gradient-to-l from-background via-background/80 to-transparent text-white transition-all duration-300 md:flex md:w-24 ${
             canRight && hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -117,7 +117,7 @@ export function ContentRail({
         <div
           ref={scrollRef}
           className={`min-w-0 overflow-x-auto overflow-y-visible hide-scrollbar scroll-smooth ${scrollPad}`}
-          style={{ paddingTop: '7rem', paddingBottom: '1.5rem', marginTop: '-7rem' }}
+          style={{ paddingTop: 'clamp(1.25rem, 9vw, 7rem)', paddingBottom: '1.5rem', marginTop: 'clamp(-7rem, -9vw, -1.25rem)' }}
         >
           <div className={`flex w-max gap-1.5 md:gap-2 ${endPad}`}>
             {items.map((movie, index) => (

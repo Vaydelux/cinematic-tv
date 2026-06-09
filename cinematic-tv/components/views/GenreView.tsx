@@ -100,8 +100,8 @@ export function GenreView() {
   }, [loadMore]);
 
   return (
-    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="mx-auto max-w-7xl px-4 py-8 sm:px-5 md:px-10 md:py-12">
-      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <motion.div variants={viewVariants} initial={false} animate="visible" exit="exit" className="mx-auto min-w-0 max-w-7xl px-4 py-6 sm:px-5 sm:py-8 md:px-10 md:py-12">
+      <div className="mb-6 flex min-w-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-primary">Catalog</p>
           <h1 className="font-display text-3xl font-bold text-on-surface sm:text-4xl md:text-5xl">Genres</h1>
@@ -112,8 +112,8 @@ export function GenreView() {
         </div>
       </div>
 
-      <div className="cinema-panel cinema-ring mb-8 rounded-lg p-4 md:p-5">
-        <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+      <div className="cinema-panel cinema-ring mb-8 min-w-0 rounded-lg p-4 md:p-5">
+        <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 hide-scrollbar">
           {(['all', 'tmdb', 'anilist'] as const).map((source) => (
             <button
               key={source}
@@ -128,7 +128,7 @@ export function GenreView() {
           ))}
         </div>
 
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+        <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-1 hide-scrollbar">
           {SORTS.map((item) => (
             <button
               key={item.id}
@@ -143,13 +143,13 @@ export function GenreView() {
           ))}
         </div>
 
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+        <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-1 hide-scrollbar sm:flex-wrap sm:overflow-visible">
           {CATALOG_GENRES.map((genre) => (
             <button
               key={genre.id}
               type="button"
               onClick={() => setSelectedGenre(genre.id)}
-              className={`rounded-md px-3 py-2 text-xs font-bold uppercase tracking-wide transition ${
+              className={`shrink-0 rounded-md px-3 py-2 text-xs font-bold uppercase tracking-wide transition ${
                 selectedGenre === genre.id ? 'bg-primary text-primary-contrast' : 'bg-white/[0.06] text-on-surface-variant hover:bg-white/10'
               }`}
             >
@@ -171,7 +171,7 @@ export function GenreView() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 pb-24 sm:grid-cols-2 md:gap-5 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="grid min-w-0 grid-cols-1 gap-4 pb-24 min-[540px]:grid-cols-2 md:gap-5 xl:grid-cols-3 2xl:grid-cols-4">
         {!loading && items.length > 0 && (
           <div className="col-span-full mb-1 flex items-center gap-3">
             <span className="h-5 w-1 rounded-full bg-primary" />
