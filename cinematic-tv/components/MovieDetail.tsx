@@ -12,6 +12,7 @@ import { ReviewsSection } from './ReviewsSection';
 import { CastRow } from './CastRow';
 import { RecommendationsRail } from './RecommendationsRail';
 import { RelationsRail } from './RelationsRail';
+import { TrailerEmbed } from './TrailerEmbed';
 import { fetchAnilist, fetchTmdb } from '@/hooks/useCatalogQuery';
 import { mapMovieDetails, mapTvDetails, mapCast, mapEpisodes, mapTmdbToMediaItem } from '@/lib/tmdb/mappers';
 import { mapAnilistToMediaItem, mapAnilistRelations } from '@/lib/anilist/mappers';
@@ -160,19 +161,28 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
 
         <div className="relative w-full aspect-[4/3] md:aspect-[21/9] shrink-0">
           <div className="absolute inset-0 z-0">
-            <Image
-              src={detail.backdrop ?? detail.image}
-              alt={detail.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 1024px"
-              priority
-            />
+            {detail.trailerKey ? (
+              <TrailerEmbed
+                trailerKey={detail.trailerKey}
+                title={detail.title}
+                interactive
+                className="bg-black"
+              />
+            ) : (
+              <Image
+                src={detail.backdrop ?? detail.image}
+                alt={detail.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 1024px"
+                priority
+              />
+            )}
           </div>
-          <div className="absolute inset-0 z-20 bg-gradient-to-t from-surface via-background/60 to-transparent" />
-          <div className="absolute inset-0 z-20 bg-gradient-to-r from-surface via-transparent to-transparent opacity-80" />
+          <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-surface via-background/60 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-r from-surface via-transparent to-transparent opacity-80" />
 
-          <div className="absolute inset-0 z-30 flex w-full flex-col justify-end p-5 sm:p-8 md:p-12">
+          <div className="pointer-events-none absolute inset-0 z-30 flex w-full flex-col justify-end p-5 sm:p-8 md:p-12">
             <div className="flex flex-wrap gap-2 text-xs font-bold tracking-widest uppercase text-white/70 mb-4">
               {detail.genres?.slice(0, 4).map((g) => (
                 <span key={g} className="rounded border border-white/10 bg-white/[0.08] px-2 py-1">
@@ -184,7 +194,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
               {detail.title}
             </h2>
             <p className="text-sm text-white/60 mb-4">{detail.meta}</p>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="pointer-events-auto flex flex-wrap items-center gap-3">
               <button
                 onClick={handlePlay}
                 className="flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-black text-black shadow-xl transition hover:bg-white/90 active:scale-95 sm:px-7"

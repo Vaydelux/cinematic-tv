@@ -33,8 +33,6 @@ export function ContentRail({
   const pad = embedded ? 'px-0' : 'px-5 md:px-16';
   const scrollPad = embedded ? 'pl-0' : 'pl-5 md:pl-16';
   const endPad = embedded ? 'pr-0' : 'pr-5 md:pr-16';
-  const arrowL = embedded ? 'left-0' : 'left-2 md:left-8';
-  const arrowR = embedded ? 'right-0' : 'right-2 md:right-8';
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
@@ -90,26 +88,15 @@ export function ContentRail({
 
       {/* Expansion zone leaves headroom for hover growth. */}
       <div className="relative">
-        <div
-          className={`pointer-events-none absolute left-0 top-0 bottom-0 w-14 md:w-24 z-30 bg-gradient-to-r from-background via-background/80 to-transparent transition-opacity duration-300 ${
-            canLeft && hovered ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
-        <div
-          className={`pointer-events-none absolute right-0 top-0 bottom-0 w-14 md:w-24 z-30 bg-gradient-to-l from-background via-background/80 to-transparent transition-opacity duration-300 ${
-            canRight && hovered ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
-
         <button
           type="button"
           onClick={() => scroll('left')}
           aria-label={`Scroll ${title} left`}
-          className={`absolute ${arrowL} top-[calc(50%+40px)] -translate-y-1/2 z-40 flex items-center justify-center text-white transition-all duration-300 ${
+          className={`absolute left-0 top-0 bottom-0 z-40 flex w-14 items-center justify-center bg-gradient-to-r from-background via-background/80 to-transparent text-white transition-all duration-300 md:w-24 ${
             canLeft && hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/75 shadow-xl backdrop-blur-sm hover:bg-black/90">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/75 shadow-xl backdrop-blur-sm transition hover:bg-black/90">
             <ChevronLeft className="w-6 h-6" />
           </span>
         </button>
@@ -118,11 +105,11 @@ export function ContentRail({
           type="button"
           onClick={() => scroll('right')}
           aria-label={`Scroll ${title} right`}
-          className={`absolute ${arrowR} top-[calc(50%+40px)] -translate-y-1/2 z-40 flex items-center justify-center text-white transition-all duration-300 ${
+          className={`absolute right-0 top-0 bottom-0 z-40 flex w-14 items-center justify-center bg-gradient-to-l from-background via-background/80 to-transparent text-white transition-all duration-300 md:w-24 ${
             canRight && hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/75 shadow-xl backdrop-blur-sm hover:bg-black/90">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/75 shadow-xl backdrop-blur-sm transition hover:bg-black/90">
             <ChevronRight className="w-6 h-6" />
           </span>
         </button>

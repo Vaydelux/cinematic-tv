@@ -8,6 +8,8 @@ import { useRouter } from 'next/navigation';
 import { MovieContext } from '@/lib/context';
 import { getWatchPath } from '@/lib/catalog/unifier';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { useHoverTrailer } from '@/hooks/useHoverTrailer';
+import { TrailerEmbed } from '@/components/TrailerEmbed';
 import type { MediaItem } from '@/lib/types';
 
 const HOVER_DELAY_MS = 400;
@@ -35,9 +37,11 @@ export const NetflixTile = memo(function NetflixTile({
   const { setActiveMovie } = useContext(MovieContext);
   const { toggle, isInList } = useWatchlist();
   const [expanded, setExpanded] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const finalLayoutId = `${layoutIdPrefix}movie-${movie.id}`;
   const inList = isInList(movie);
+  const trailerKey = useHoverTrailer(movie, hovered);
 
   const clearHoverTimer = () => {
     if (hoverTimer.current) {
@@ -47,6 +51,7 @@ export const NetflixTile = memo(function NetflixTile({
   };
 
   const handleEnter = () => {
+    setHovered(true);
     onItemHover?.(movie);
     if (!expandOnHover || window.innerWidth < 768) return;
     clearHoverTimer();
@@ -54,6 +59,7 @@ export const NetflixTile = memo(function NetflixTile({
   };
 
   const handleLeave = () => {
+    setHovered(false);
     clearHoverTimer();
     setExpanded(false);
   };
@@ -106,16 +112,25 @@ export const NetflixTile = memo(function NetflixTile({
               src={movie.image}
               alt={movie.title}
               fill
-              className="object-cover"
+              className={`object-cover transition-opacity duration-300 ${trailerKey ? 'opacity-0' : 'opacity-100'}`}
               sizes="(max-width: 768px) 280px, 316px"
             />
+            {trailerKey && (
+              <div className="absolute inset-0 z-[1] bg-black">
+                <TrailerEmbed
+                  trailerKey={trailerKey}
+                  title={movie.title}
+                  className="scale-[1.18]"
+                />
+              </div>
+            )}
             {movie.source === 'anilist' && (
               <span className="absolute top-2 left-2 z-10 px-2 py-0.5 bg-primary/90 text-white text-[10px] font-bold rounded uppercase">
                 Anime
               </span>
             )}
             {!expanded && (
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-3 opacity-100 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100">
+              <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-3 opacity-100 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100">
                 <p className="truncate font-display text-sm font-bold text-white drop-shadow">{movie.title}</p>
               </div>
             )}

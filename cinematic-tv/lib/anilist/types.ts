@@ -11,6 +11,7 @@ export type AniListMedia = {
   title: { romaji?: string; english?: string; native?: string; userPreferred?: string };
   coverImage?: { extraLarge?: string; large?: string; color?: string };
   bannerImage?: string | null;
+  trailer?: { id?: string | null; site?: string | null; thumbnail?: string | null } | null;
   genres?: string[];
   externalLinks?: { site: string; url?: string; siteId?: number | null }[];
   relations?: {

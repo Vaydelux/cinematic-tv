@@ -8,7 +8,7 @@ import { AlertCircle, Info, Play, RefreshCw } from 'lucide-react';
 import { ContentRail } from '@/components/ContentRail';
 import { fetchAnilist, fetchTmdb, useCatalogQuery } from '@/hooks/useCatalogQuery';
 import { useContinueWatching } from '@/hooks/useContinueWatching';
-import { CATALOG_GENRES, getCatalogGenre } from '@/lib/catalog/genres';
+import { getCatalogGenre } from '@/lib/catalog/genres';
 import { getWatchPath } from '@/lib/catalog/unifier';
 import { dedupeSearchResults } from '@/lib/catalog/unifier';
 import { getUserSettings } from '@/lib/user-settings';
@@ -16,8 +16,8 @@ import { MovieContext } from '@/lib/context';
 import { mapAnilistToMediaItem } from '@/lib/anilist/mappers';
 import { mapTmdbToMediaItem } from '@/lib/tmdb/mappers';
 import type { MediaItem } from '@/lib/types';
-import type { AniListPageResponse } from '@/lib/anilist/types';
-import type { TmdbListResponse, TmdbMovieResult } from '@/lib/tmdb/types';
+import type { AniListMediaResponse, AniListPageResponse } from '@/lib/anilist/types';
+import type { TmdbListResponse, TmdbMovieDetails, TmdbMovieResult, TmdbTvDetails } from '@/lib/tmdb/types';
 
 const VIEW_EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -72,6 +72,9 @@ const SERVER_RAILS: { key: RailKey; title: string; prefix: string }[] = [
   { key: 'topRatedAnime', title: 'Top Rated Anime', prefix: 'anime-top-' },
   { key: 'airingAnime', title: 'Currently Airing', prefix: 'anime-air-' },
 ];
+const GENRE_SENTINEL_AFTER_RAILS = 5;
+const INITIAL_HOME_GENRE_RAILS = 4;
+const HOME_GENRE_RAIL_BATCH = 2;
 
 function makeRailState(items: MediaItem[] = []): RailState {
   return { items, page: 1, hasMore: items.length > 0, loadingMore: false };
@@ -83,8 +86,13 @@ export function HomeView() {
   const [heroPreview, setHeroPreview] = useState<MediaItem | null>(null);
   const [railStates, setRailStates] = useState<Record<string, RailState>>({});
   const [showGenreRails, setShowGenreRails] = useState(false);
+  const [visibleGenreRailCount, setVisibleGenreRailCount] = useState(INITIAL_HOME_GENRE_RAILS);
   const genreSentinelRef = useRef<HTMLDivElement>(null);
+  const genreBatchSentinelRef = useRef<HTMLDivElement>(null);
+  const genreBatchScrollRef = useRef(0);
+  const initializedGenreRailsRef = useRef(new Set<string>());
   const railLoadingKeysRef = useRef(new Set<string>());
+  const hoverDescriptionCacheRef = useRef(new Map<string, string | undefined>());
   const { items: cwItems } = useContinueWatching();
   const [settings] = useState(() => getUserSettings());
   const homeQuery = new URLSearchParams({
@@ -111,16 +119,17 @@ export function HomeView() {
 
   useEffect(() => {
     const sentinel = genreSentinelRef.current;
-    if (!sentinel || showGenreRails) return undefined;
+    if (!sentinel || showGenreRails || settings.homeGenreIds.length === 0) return undefined;
+    const scrollRoot = sentinel.closest('main');
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) setShowGenreRails(true);
       },
-      { rootMargin: '800px 0px' }
+      { root: scrollRoot, rootMargin: '800px 0px' }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [showGenreRails]);
+  }, [data, settings.homeGenreIds.length, showGenreRails]);
 
   const setRailLoading = useCallback((key: string, loadingMore: boolean) => {
     setRailStates((current) => ({
@@ -205,7 +214,7 @@ export function HomeView() {
     async (genreId: string) => {
       const key = `genre:${genreId}`;
       const state = railStates[key] ?? makeRailState();
-      if (state.loadingMore || !state.hasMore) return;
+      if (state.loadingMore || (!state.hasMore && state.items.length > 0)) return;
       if (railLoadingKeysRef.current.has(key)) return;
       const nextPage = state.items.length ? state.page + 1 : 1;
       railLoadingKeysRef.current.add(key);
@@ -233,14 +242,15 @@ export function HomeView() {
 
   useEffect(() => {
     if (!showGenreRails) return;
-    settings.homeGenreIds.forEach((genreId) => {
+    settings.homeGenreIds.slice(0, visibleGenreRailCount).forEach((genreId) => {
       const key = `genre:${genreId}`;
-      if (!railStates[key]) {
+      if (!railStates[key] && !initializedGenreRailsRef.current.has(key)) {
+        initializedGenreRailsRef.current.add(key);
         setRailStates((current) => ({ ...current, [key]: makeRailState() }));
         loadMoreGenreRail(genreId);
       }
     });
-  }, [loadMoreGenreRail, railStates, settings.homeGenreIds, showGenreRails]);
+  }, [loadMoreGenreRail, railStates, settings.homeGenreIds, showGenreRails, visibleGenreRailCount]);
 
   const cwMedia: MediaItem[] = cwItems.map((e) => ({
     id: `${e.source}-${e.mediaType}-${e.tmdbId ?? e.anilistId}`,
@@ -260,6 +270,7 @@ export function HomeView() {
   const defaultHero = data?.hero;
   const displayHero = heroPreview ?? defaultHero;
   const isHoverPreview = heroPreview != null;
+  const mediaCacheKey = useCallback((item: MediaItem) => `${item.source}:${item.mediaType}:${item.tmdbId ?? item.anilistId ?? item.id}`, []);
   const handleItemHover = useCallback((item: MediaItem | null) => {
     setHeroPreview(item);
   }, []);
@@ -274,6 +285,104 @@ export function HomeView() {
   const hasServerRails =
     data &&
     Object.entries(data.rails).some(([key, items]) => key !== 'continueWatching' && items.length > 0);
+  const leadingServerRails = SERVER_RAILS.slice(0, GENRE_SENTINEL_AFTER_RAILS);
+  const trailingServerRails = SERVER_RAILS.slice(GENRE_SENTINEL_AFTER_RAILS);
+  const visibleHomeGenreIds = showGenreRails
+    ? settings.homeGenreIds.slice(0, visibleGenreRailCount)
+    : [];
+
+  useEffect(() => {
+    if (!heroPreview || heroPreview.description) return undefined;
+    const key = mediaCacheKey(heroPreview);
+    if (hoverDescriptionCacheRef.current.has(key)) {
+      const cachedDescription = hoverDescriptionCacheRef.current.get(key);
+      if (cachedDescription) {
+        setHeroPreview((current) => (current && mediaCacheKey(current) === key ? { ...current, description: cachedDescription } : current));
+      }
+      return undefined;
+    }
+
+    const timer = window.setTimeout(async () => {
+      let description: string | undefined;
+      try {
+        if (heroPreview.source === 'tmdb' && heroPreview.tmdbId) {
+          if (heroPreview.mediaType === 'movie') {
+            const detail = await fetchTmdb<TmdbMovieDetails>(`movie/${heroPreview.tmdbId}`, { language: 'en-US' });
+            description = detail.overview || undefined;
+          } else if (heroPreview.mediaType === 'tv') {
+            const detail = await fetchTmdb<TmdbTvDetails>(`tv/${heroPreview.tmdbId}`, { language: 'en-US' });
+            description = detail.overview || undefined;
+          }
+        } else if (heroPreview.source === 'anilist' && heroPreview.anilistId) {
+          const detail = await fetchAnilist<AniListMediaResponse>('mediaById', { id: heroPreview.anilistId });
+          description = detail.Media ? mapAnilistToMediaItem(detail.Media).description : undefined;
+        }
+      } catch {
+        description = undefined;
+      }
+
+      hoverDescriptionCacheRef.current.set(key, description);
+      if (description) {
+        setHeroPreview((current) => (current && mediaCacheKey(current) === key ? { ...current, description } : current));
+      }
+    }, 550);
+
+    return () => window.clearTimeout(timer);
+  }, [heroPreview, mediaCacheKey]);
+
+  useEffect(() => {
+    if (showGenreRails || settings.homeGenreIds.length === 0) return;
+    if (data && !hasServerRails) setShowGenreRails(true);
+  }, [data, hasServerRails, settings.homeGenreIds.length, showGenreRails]);
+
+  useEffect(() => {
+    if (!data || showGenreRails || settings.homeGenreIds.length === 0) return undefined;
+    const scrollRoot = document.querySelector('main');
+    if (!scrollRoot) return undefined;
+    const activateOnScroll = () => {
+      if (scrollRoot.scrollTop > 700) setShowGenreRails(true);
+    };
+    activateOnScroll();
+    scrollRoot.addEventListener('scroll', activateOnScroll, { passive: true });
+    return () => scrollRoot.removeEventListener('scroll', activateOnScroll);
+  }, [data, settings.homeGenreIds.length, showGenreRails]);
+
+  useEffect(() => {
+    if (!showGenreRails || visibleGenreRailCount >= settings.homeGenreIds.length) return undefined;
+    const sentinel = genreBatchSentinelRef.current;
+    if (!sentinel) return undefined;
+    const scrollRoot = sentinel.closest('main');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        const scrollTop = scrollRoot?.scrollTop ?? 0;
+        if (Math.abs(scrollTop - genreBatchScrollRef.current) < 300) return;
+        genreBatchScrollRef.current = scrollTop;
+        setVisibleGenreRailCount((count) =>
+          Math.min(count + HOME_GENRE_RAIL_BATCH, settings.homeGenreIds.length)
+        );
+      },
+      { root: scrollRoot, rootMargin: '700px 0px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [settings.homeGenreIds.length, showGenreRails, visibleGenreRailCount]);
+
+  const renderServerRail = (rail: (typeof SERVER_RAILS)[number]) => {
+    const state = railStates[rail.key] ?? makeRailState(data?.rails[rail.key]);
+    return (
+      <ContentRail
+        key={rail.key}
+        title={rail.title}
+        items={state.items}
+        prefix={rail.prefix}
+        onItemHover={handleItemHover}
+        onEndReached={() => loadMoreServerRail(rail.key)}
+        loadingMore={state.loadingMore}
+        hasMore={state.hasMore}
+      />
+    );
+  };
 
   if (loading) {
     return (
@@ -424,25 +533,10 @@ export function HomeView() {
       >
 
         <ContentRail title="Continue Watching" items={cwMedia} prefix="cw-" showProgress onItemHover={handleItemHover} />
-        {SERVER_RAILS.map((rail) => {
-          const state = railStates[rail.key] ?? makeRailState(data?.rails[rail.key]);
-          return (
-            <ContentRail
-              key={rail.key}
-              title={rail.title}
-              items={state.items}
-              prefix={rail.prefix}
-              onItemHover={handleItemHover}
-              onEndReached={() => loadMoreServerRail(rail.key)}
-              loadingMore={state.loadingMore}
-              hasMore={state.hasMore}
-            />
-          );
-        })}
-
+        {leadingServerRails.map(renderServerRail)}
         <div ref={genreSentinelRef} className="h-1" aria-hidden />
-        {showGenreRails &&
-          settings.homeGenreIds.map((genreId) => {
+        {trailingServerRails.map(renderServerRail)}
+        {visibleHomeGenreIds.map((genreId) => {
             const genre = getCatalogGenre(genreId);
             if (!genre) return null;
             const key = `genre:${genreId}`;
@@ -460,6 +554,9 @@ export function HomeView() {
               />
             );
           })}
+        {showGenreRails && visibleGenreRailCount < settings.homeGenreIds.length && (
+          <div ref={genreBatchSentinelRef} className="h-1" aria-hidden />
+        )}
       </div>
     </motion.div>
   );

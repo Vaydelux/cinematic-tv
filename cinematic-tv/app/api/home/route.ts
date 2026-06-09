@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
     const trendingAnime = animePage('trendingAnime');
     const hero =
       trendingMovieWeek[0]
-        ? mapTmdbToMediaItem(trendingMovieWeek[0])
+        ? mapTmdbToMediaItem(trendingMovieWeek[0], undefined, { includeDescription: true })
         : trendingAnime[0]
           ? mapAnilistToMediaItem(trendingAnime[0])
           : null;

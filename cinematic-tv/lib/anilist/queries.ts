@@ -6,12 +6,17 @@ export const MEDIA_CARD_FIELDS = `
   status
   episodes
   averageScore
-  description(asHtml: false)
   isAdult
   title { romaji english native userPreferred }
   coverImage { extraLarge large color }
   bannerImage
   genres
+`;
+
+export const MEDIA_DETAIL_FIELDS = `
+  ${MEDIA_CARD_FIELDS}
+  description(asHtml: false)
+  trailer { id site thumbnail }
 `;
 
 export const MEDIA_SEARCH = `
@@ -77,7 +82,7 @@ query ($page: Int, $perPage: Int, $isAdult: Boolean) {
 export const MEDIA_BY_ID = `
 query ($id: Int) {
   Media(id: $id, type: ANIME) {
-    ${MEDIA_CARD_FIELDS}
+    ${MEDIA_DETAIL_FIELDS}
     externalLinks { site url siteId type }
     relations {
       edges {

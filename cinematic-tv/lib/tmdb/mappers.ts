@@ -33,7 +33,15 @@ function inferMediaType(item: TmdbMovieResult): MediaType {
   return item.title ? 'movie' : 'tv';
 }
 
-export function mapTmdbToMediaItem(item: TmdbMovieResult, genreNames?: string[]): MediaItem {
+type ListMapOptions = {
+  includeDescription?: boolean;
+};
+
+export function mapTmdbToMediaItem(
+  item: TmdbMovieResult,
+  genreNames?: string[],
+  options: ListMapOptions = {}
+): MediaItem {
   const mediaType = inferMediaType(item);
   const title = item.title ?? item.name ?? 'Unknown';
   const year = formatYear(item.release_date ?? item.first_air_date);
@@ -48,7 +56,7 @@ export function mapTmdbToMediaItem(item: TmdbMovieResult, genreNames?: string[])
     meta: year ? `${year}${genres.length ? ` • ${genres[0]}` : ''}` : genres[0] ?? '',
     image: buildImageUrl(item.poster_path, 'w342'),
     backdrop: buildImageUrl(item.backdrop_path, 'w780'),
-    description: item.overview || undefined,
+    description: options.includeDescription ? item.overview || undefined : undefined,
     genres,
     voteAverage: item.vote_average,
   };

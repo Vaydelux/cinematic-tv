@@ -30,6 +30,7 @@ export function mapAnilistToMediaItem(media: AniListMedia): MediaItem {
     description: media.description?.replace(/<[^>]+>/g, '') || undefined,
     genres: media.genres,
     voteAverage: media.averageScore ? media.averageScore / 10 : undefined,
+    trailerKey: media.trailer?.site === 'youtube' ? media.trailer.id ?? undefined : undefined,
     episodes: media.episodes ?? undefined,
     episode: 1,
     isAdult: media.isAdult,
