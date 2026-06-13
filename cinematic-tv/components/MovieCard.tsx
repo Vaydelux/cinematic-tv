@@ -54,7 +54,7 @@ export const MovieCard = memo(function MovieCard({
         setHoveredMovie(null);
       }}
     >
-      <div className="relative aspect-[2/3] w-full bg-black">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-black">
         <Image
           src={movie.image}
           alt=""

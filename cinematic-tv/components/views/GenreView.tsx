@@ -113,7 +113,7 @@ export function GenreView() {
       </div>
 
       <div className="cinema-panel cinema-ring mb-8 min-w-0 rounded-lg p-4 md:p-5">
-        <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 hide-scrollbar">
+        <div className="flex min-w-0 flex-wrap gap-2">
           {(['all', 'tmdb', 'anilist'] as const).map((source) => (
             <button
               key={source}
@@ -128,7 +128,7 @@ export function GenreView() {
           ))}
         </div>
 
-        <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-1 hide-scrollbar">
+        <div className="mt-3 flex min-w-0 flex-wrap gap-2">
           {SORTS.map((item) => (
             <button
               key={item.id}
@@ -143,7 +143,7 @@ export function GenreView() {
           ))}
         </div>
 
-        <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-1 hide-scrollbar sm:flex-wrap sm:overflow-visible">
+        <div className="mt-3 flex min-w-0 flex-wrap gap-2">
           {CATALOG_GENRES.map((genre) => (
             <button
               key={genre.id}

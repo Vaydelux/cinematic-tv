@@ -274,7 +274,7 @@ export function SearchView() {
           </button>
         </div>
 
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+        <div className="mt-4 flex flex-wrap gap-2">
           {(['all', 'tmdb', 'anilist'] as const).map((s) => (
             <button
               key={s}
@@ -288,7 +288,7 @@ export function SearchView() {
           ))}
         </div>
 
-        <div className="mt-2 flex min-w-0 gap-2 overflow-x-auto pb-1 hide-scrollbar sm:flex-wrap sm:overflow-visible">
+        <div className="mt-2 flex min-w-0 flex-wrap gap-2">
           {[{ id: 'all', name: 'All' }, ...CATALOG_GENRES].map((genre) => (
             <button
               key={genre.id}

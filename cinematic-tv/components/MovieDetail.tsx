@@ -243,7 +243,7 @@ export function MovieDetail({ movie, onClose }: { movie: ActiveMediaState; onClo
               {movie.mediaType === 'tv' && seasons.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-xl font-display font-bold mb-4">Episodes</h3>
-                  <div className="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">
+                  <div className="mb-4 flex flex-wrap gap-2">
                     {seasons.map((s) => (
                       <button
                         key={s.seasonNumber}

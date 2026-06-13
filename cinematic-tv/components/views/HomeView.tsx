@@ -445,7 +445,7 @@ export function HomeView() {
                 src={displayHero.backdrop ?? displayHero.image}
                 alt=""
                 fill
-                className="object-cover scale-105"
+                className="object-cover"
                 sizes="100vw"
                 priority={!isHoverPreview}
                 loading="eager"

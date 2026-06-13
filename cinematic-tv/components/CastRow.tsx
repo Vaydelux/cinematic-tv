@@ -6,9 +6,9 @@ export function CastRow({ cast }: { cast: CastMember[] }) {
   return (
     <section className="mb-8">
       <h3 className="text-xl font-display font-bold mb-4">Cast</h3>
-      <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
+      <div className="grid grid-cols-3 gap-4 min-[460px]:grid-cols-4 sm:grid-cols-5 md:grid-cols-6">
         {cast.map((member) => (
-          <div key={member.id} className="flex flex-col items-center shrink-0 w-24">
+          <div key={member.id} className="flex min-w-0 flex-col items-center">
             <div className="w-20 h-20 rounded-full overflow-hidden bg-surface-container mb-2 relative">
               {member.profileUrl ? (
                 <Image src={member.profileUrl} alt={member.name} fill sizes="80px" className="object-cover" />

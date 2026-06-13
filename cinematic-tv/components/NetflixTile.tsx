@@ -25,7 +25,6 @@ export const NetflixTile = memo(function NetflixTile({
   movie,
   showProgress = false,
   layoutIdPrefix = '',
-  staggerIndex = 0,
   onItemHover,
   compact = false,
 }: Props) {
@@ -47,17 +46,8 @@ export const NetflixTile = memo(function NetflixTile({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.4, delay: Math.min(staggerIndex * 0.035, 0.3), ease: [0.16, 1, 0.3, 1] }}
-      whileHover={undefined}
-      className={`group relative shrink-0 ${
-        compact
-          ? 'w-[42vw] min-w-[132px] max-w-[168px] sm:w-[156px] md:w-[168px]'
-          : 'w-[44vw] min-w-[138px] max-w-[188px] sm:w-[168px] md:w-[178px] lg:w-[188px]'
-      }`}
+    <div
+      className="group relative min-w-0"
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
     >
@@ -80,21 +70,21 @@ export const NetflixTile = memo(function NetflixTile({
           }}
           className="overflow-hidden rounded-lg bg-surface-container shadow-md ring-1 ring-white/10 transition-shadow duration-300 hover:shadow-[0_14px_36px_rgba(0,0,0,0.48)] hover:ring-white/20"
         >
-          <div className="relative aspect-[2/3] w-full bg-black">
+          <div className="relative aspect-[2/3] w-full overflow-hidden bg-black">
             <Image
               src={movie.image}
               alt=""
               fill
               aria-hidden
-              className={`scale-110 object-cover opacity-35 blur-md transition-opacity duration-300 ${trailerKey ? 'opacity-0' : ''}`}
-              sizes="(max-width: 640px) 44vw, 188px"
+              className={`scale-105 object-cover opacity-25 blur-sm transition-opacity duration-300 ${trailerKey ? 'opacity-0' : ''}`}
+              sizes={compact ? '(max-width: 640px) 50vw, 180px' : '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 17vw'}
             />
             <Image
               src={movie.image}
               alt={movie.title}
               fill
               className={`object-contain transition-opacity duration-300 ${trailerKey ? 'opacity-0' : 'opacity-100'}`}
-              sizes="(max-width: 640px) 44vw, 188px"
+              sizes={compact ? '(max-width: 640px) 50vw, 180px' : '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 17vw'}
             />
             {trailerKey && (
               <div className="absolute inset-0 z-[1] bg-black">
@@ -122,40 +112,40 @@ export const NetflixTile = memo(function NetflixTile({
             </p>
             <p className="mt-1 truncate text-[11px] text-on-surface-variant">{movie.meta}</p>
             <div className="mt-2 flex items-center gap-2 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(getWatchPath(movie));
-                    }}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(getWatchPath(movie));
+                }}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-white/90"
-                    aria-label="Play"
-                  >
+                aria-label="Play"
+              >
                 <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggle(movie);
-                    }}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle(movie);
+                }}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/35 text-white transition hover:border-white"
-                    aria-label={inList ? 'Remove from list' : 'Add to list'}
-                  >
+                aria-label={inList ? 'Remove from list' : 'Add to list'}
+              >
                 {inList ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveMovie({ ...movie, matchedLayoutId: finalLayoutId });
-                    }}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveMovie({ ...movie, matchedLayoutId: finalLayoutId });
+                }}
                 className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/30 text-white/90 transition hover:border-white"
-                    aria-label="More info"
-                  >
+                aria-label="More info"
+              >
                 <Info className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+              </button>
+            </div>
           </div>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 });
