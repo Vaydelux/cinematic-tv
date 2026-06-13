@@ -36,7 +36,6 @@ export function ContentRail({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
   const updateArrows = useCallback(() => {
     const el = scrollRef.current;
@@ -77,27 +76,24 @@ export function ContentRail({
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.45 }}
-      className="relative mb-4 min-w-0 group/rail"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="relative mb-7 min-w-0 group/rail"
     >
       <div className={`mb-3 flex min-w-0 items-center gap-3 ${pad}`}>
         <span className="h-5 w-1 rounded-full bg-primary" />
         <h2 className="min-w-0 truncate font-display text-lg font-bold tracking-tight text-on-surface sm:text-xl md:text-2xl">{title}</h2>
       </div>
 
-      {/* Expansion zone leaves headroom for hover growth. */}
       <div className="relative">
         <button
           type="button"
           onClick={() => scroll('left')}
           aria-label={`Scroll ${title} left`}
-          className={`absolute left-0 top-0 bottom-0 z-40 hidden w-14 items-center justify-center bg-gradient-to-r from-background via-background/80 to-transparent text-white transition-all duration-300 md:flex md:w-24 ${
-            canLeft && hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          className={`absolute left-0 top-0 bottom-0 z-40 flex w-12 items-center justify-center bg-gradient-to-r from-background via-background/80 to-transparent text-white transition-all duration-300 sm:w-16 md:w-20 ${
+            canLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/75 shadow-xl backdrop-blur-sm transition hover:bg-black/90">
-            <ChevronLeft className="w-6 h-6" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/75 shadow-xl backdrop-blur-sm transition hover:bg-black/90 sm:h-10 sm:w-10">
+            <ChevronLeft className="h-5 w-5" />
           </span>
         </button>
 
@@ -105,35 +101,35 @@ export function ContentRail({
           type="button"
           onClick={() => scroll('right')}
           aria-label={`Scroll ${title} right`}
-          className={`absolute right-0 top-0 bottom-0 z-40 hidden w-14 items-center justify-center bg-gradient-to-l from-background via-background/80 to-transparent text-white transition-all duration-300 md:flex md:w-24 ${
-            canRight && hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          className={`absolute right-0 top-0 bottom-0 z-40 flex w-12 items-center justify-center bg-gradient-to-l from-background via-background/80 to-transparent text-white transition-all duration-300 sm:w-16 md:w-20 ${
+            canRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/75 shadow-xl backdrop-blur-sm transition hover:bg-black/90">
-            <ChevronRight className="w-6 h-6" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/75 shadow-xl backdrop-blur-sm transition hover:bg-black/90 sm:h-10 sm:w-10">
+            <ChevronRight className="h-5 w-5" />
           </span>
         </button>
 
         <div
           ref={scrollRef}
-          className={`min-w-0 overflow-x-auto overflow-y-visible hide-scrollbar scroll-smooth ${scrollPad}`}
-          style={{ paddingTop: 'clamp(1.25rem, 9vw, 7rem)', paddingBottom: '1.5rem', marginTop: 'clamp(-7rem, -9vw, -1.25rem)' }}
+          className={`min-w-0 overflow-x-auto overflow-y-hidden hide-scrollbar scroll-smooth ${scrollPad}`}
+          style={{ scrollPaddingLeft: embedded ? 0 : undefined }}
         >
-          <div className={`flex w-max gap-1.5 md:gap-2 ${endPad}`}>
+          <div className={`flex w-max snap-x snap-mandatory gap-3 pb-2 md:gap-4 ${endPad}`}>
             {items.map((movie, index) => (
-              <NetflixTile
-                key={`${prefix}-${movie.id}`}
-                movie={movie}
-                showProgress={showProgress}
-                layoutIdPrefix={prefix}
-                staggerIndex={index}
-                onItemHover={onItemHover}
-                compact={embedded}
-                expandOnHover={!embedded}
-              />
+              <div key={`${prefix}-${movie.id}`} className="snap-start">
+                <NetflixTile
+                  movie={movie}
+                  showProgress={showProgress}
+                  layoutIdPrefix={prefix}
+                  staggerIndex={index}
+                  onItemHover={onItemHover}
+                  compact={embedded}
+                />
+              </div>
             ))}
             {loadingMore && (
-              <div className="flex h-[180px] w-24 shrink-0 items-center justify-center">
+              <div className="flex h-[260px] w-24 shrink-0 items-center justify-center">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               </div>
             )}

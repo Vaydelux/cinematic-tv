@@ -46,7 +46,7 @@ export function ListView() {
           <p className="mt-2 max-w-sm text-sm text-on-surface-variant">Add titles from any detail page and they will appear here.</p>
         </div>
       ) : (
-        <div className="grid min-w-0 grid-cols-1 gap-4 pb-24 min-[540px]:grid-cols-2 md:gap-5 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid min-w-0 grid-cols-2 gap-3 pb-24 min-[520px]:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {mediaItems.map((movie) => (
             <MovieCard
               key={movie.id}

@@ -171,7 +171,7 @@ export function GenreView() {
         </div>
       )}
 
-      <div className="grid min-w-0 grid-cols-1 gap-4 pb-24 min-[540px]:grid-cols-2 md:gap-5 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="grid min-w-0 grid-cols-2 gap-3 pb-24 min-[520px]:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
         {!loading && items.length > 0 && (
           <div className="col-span-full mb-1 flex items-center gap-3">
             <span className="h-5 w-1 rounded-full bg-primary" />

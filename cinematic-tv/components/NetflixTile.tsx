@@ -1,8 +1,8 @@
 'use client';
 
-import { memo, useContext, useEffect, useRef, useState } from 'react';
+import { memo, useContext, useState } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { Play, Plus, Info, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { MovieContext } from '@/lib/context';
@@ -12,8 +12,6 @@ import { useHoverTrailer } from '@/hooks/useHoverTrailer';
 import { TrailerEmbed } from '@/components/TrailerEmbed';
 import type { MediaItem } from '@/lib/types';
 
-const HOVER_DELAY_MS = 400;
-
 type Props = {
   movie: MediaItem;
   showProgress?: boolean;
@@ -21,7 +19,6 @@ type Props = {
   staggerIndex?: number;
   onItemHover?: (item: MediaItem) => void;
   compact?: boolean;
-  expandOnHover?: boolean;
 };
 
 export const NetflixTile = memo(function NetflixTile({
@@ -31,40 +28,23 @@ export const NetflixTile = memo(function NetflixTile({
   staggerIndex = 0,
   onItemHover,
   compact = false,
-  expandOnHover = true,
 }: Props) {
   const router = useRouter();
   const { setActiveMovie } = useContext(MovieContext);
   const { toggle, isInList } = useWatchlist();
-  const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const finalLayoutId = `${layoutIdPrefix}movie-${movie.id}`;
   const inList = isInList(movie);
   const trailerKey = useHoverTrailer(movie, hovered);
 
-  const clearHoverTimer = () => {
-    if (hoverTimer.current) {
-      clearTimeout(hoverTimer.current);
-      hoverTimer.current = null;
-    }
-  };
-
   const handleEnter = () => {
     setHovered(true);
     onItemHover?.(movie);
-    if (!expandOnHover || window.innerWidth < 768 || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-    clearHoverTimer();
-    hoverTimer.current = setTimeout(() => setExpanded(true), HOVER_DELAY_MS);
   };
 
   const handleLeave = () => {
     setHovered(false);
-    clearHoverTimer();
-    setExpanded(false);
   };
-
-  useEffect(() => () => clearHoverTimer(), []);
 
   return (
     <motion.div
@@ -73,24 +53,19 @@ export const NetflixTile = memo(function NetflixTile({
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.4, delay: Math.min(staggerIndex * 0.035, 0.3), ease: [0.16, 1, 0.3, 1] }}
       whileHover={undefined}
-      className={`group relative aspect-video shrink-0 overflow-visible ${
+      className={`group relative shrink-0 ${
         compact
-          ? 'w-[72vw] min-w-[210px] max-w-[300px] sm:w-[280px] md:h-[150px] md:w-[268px]'
-          : 'w-[74vw] min-w-[220px] max-w-[340px] sm:w-[42vw] sm:min-w-[280px] sm:max-w-[340px] md:h-[178px] md:w-[316px] md:max-w-none'
+          ? 'w-[42vw] min-w-[132px] max-w-[168px] sm:w-[156px] md:w-[168px]'
+          : 'w-[44vw] min-w-[138px] max-w-[188px] sm:w-[168px] md:w-[178px] lg:w-[188px]'
       }`}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
     >
-      {/* Expanded card overlays neighbors while the rail keeps a fixed footprint. */}
       <motion.div
         layoutId={finalLayoutId}
-        animate={{
-          x: expanded ? '-7.5%' : '0%',
-          y: expanded ? -12 : 0,
-          scale: expanded ? 1.12 : 1,
-        }}
+        whileHover={{ y: -4 }}
         transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-        className={`absolute bottom-0 left-0 w-full origin-bottom cursor-pointer ${expanded ? 'z-[60]' : 'z-0'}`}
+        className="relative w-full cursor-pointer"
         style={{ willChange: 'transform' }}
       >
         <div
@@ -103,24 +78,29 @@ export const NetflixTile = memo(function NetflixTile({
               setActiveMovie({ ...movie, matchedLayoutId: finalLayoutId });
             }
           }}
-          className={`overflow-hidden rounded-xl bg-[#181818] transition-shadow duration-300 ${
-            expanded ? 'shadow-[0_18px_48px_rgba(0,0,0,0.72)] ring-1 ring-white/[0.16]' : 'shadow-md ring-1 ring-white/5'
-          }`}
+          className="overflow-hidden rounded-lg bg-surface-container shadow-md ring-1 ring-white/10 transition-shadow duration-300 hover:shadow-[0_14px_36px_rgba(0,0,0,0.48)] hover:ring-white/20"
         >
-          <div className="relative aspect-[16/9] w-full">
+          <div className="relative aspect-[2/3] w-full bg-black">
+            <Image
+              src={movie.image}
+              alt=""
+              fill
+              aria-hidden
+              className={`scale-110 object-cover opacity-35 blur-md transition-opacity duration-300 ${trailerKey ? 'opacity-0' : ''}`}
+              sizes="(max-width: 640px) 44vw, 188px"
+            />
             <Image
               src={movie.image}
               alt={movie.title}
               fill
-              className={`object-cover transition-opacity duration-300 ${trailerKey ? 'opacity-0' : 'opacity-100'}`}
-              sizes="(max-width: 768px) 280px, 316px"
+              className={`object-contain transition-opacity duration-300 ${trailerKey ? 'opacity-0' : 'opacity-100'}`}
+              sizes="(max-width: 640px) 44vw, 188px"
             />
             {trailerKey && (
               <div className="absolute inset-0 z-[1] bg-black">
                 <TrailerEmbed
                   trailerKey={trailerKey}
                   title={movie.title}
-                  className="scale-[1.18]"
                 />
               </div>
             )}
@@ -129,11 +109,6 @@ export const NetflixTile = memo(function NetflixTile({
                 Anime
               </span>
             )}
-            {!expanded && (
-              <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-3 opacity-100 transition-opacity duration-300 md:opacity-0 md:[@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100">
-                <p className="truncate font-display text-sm font-bold text-white drop-shadow">{movie.title}</p>
-              </div>
-            )}
             {showProgress && movie.progress !== undefined && movie.progress > 0 && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-10">
                 <div className="h-full bg-primary" style={{ width: `${movie.progress}%` }} />
@@ -141,54 +116,44 @@ export const NetflixTile = memo(function NetflixTile({
             )}
           </div>
 
-          <AnimatePresence>
-            {expanded && !compact && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="overflow-hidden border-t border-white/10 bg-[#151515] px-3 py-3"
-              >
-                <p className="font-display font-bold text-white text-sm leading-tight truncate">
-                  {movie.title}
-                </p>
-                <p className="text-[11px] text-white/50 truncate mt-1">{movie.meta}</p>
-                <div className="flex items-center gap-2 mt-3">
+          <div className="border-t border-white/10 bg-surface px-2.5 py-2.5">
+            <p className="line-clamp-2 min-h-[2.25rem] font-display text-sm font-bold leading-tight text-on-surface">
+              {movie.title}
+            </p>
+            <p className="mt-1 truncate text-[11px] text-on-surface-variant">{movie.meta}</p>
+            <div className="mt-2 flex items-center gap-2 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       router.push(getWatchPath(movie));
                     }}
-                    className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:bg-white/90 transition shrink-0"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-white/90"
                     aria-label="Play"
                   >
-                    <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
                   </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggle(movie);
                     }}
-                    className="w-8 h-8 rounded-full border-2 border-white/50 text-white flex items-center justify-center hover:border-white transition shrink-0"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/35 text-white transition hover:border-white"
                     aria-label={inList ? 'Remove from list' : 'Add to list'}
                   >
-                    {inList ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                {inList ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
                   </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setActiveMovie({ ...movie, matchedLayoutId: finalLayoutId });
                     }}
-                    className="w-8 h-8 rounded-full border-2 border-white/40 text-white/90 flex items-center justify-center hover:border-white transition shrink-0 ml-auto"
+                className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/30 text-white/90 transition hover:border-white"
                     aria-label="More info"
                   >
-                    <Info className="w-3.5 h-3.5" />
+                <Info className="h-3.5 w-3.5" />
                   </button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          </div>
         </div>
       </motion.div>
     </motion.div>
