@@ -28,7 +28,6 @@ export type RatingFilter = {
 
 export const COUNTRY_FILTERS: CountryFilter[] = [
   { id: 'all', label: 'All countries' },
-  { id: 'PH', label: 'Filipino' },
   { id: 'US', label: 'United States' },
   { id: 'KR', label: 'Korea' },
   { id: 'JP', label: 'Japan' },
