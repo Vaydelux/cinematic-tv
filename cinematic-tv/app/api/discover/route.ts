@@ -3,6 +3,7 @@ import { anilistQuery } from '@/lib/anilist/client';
 import { mapAnilistToMediaItem } from '@/lib/anilist/mappers';
 import type { AniListPageResponse } from '@/lib/anilist/types';
 import { getCatalogGenre } from '@/lib/catalog/genres';
+import { getCountryFilter, getRatingFilter, type CountryFilterId } from '@/lib/catalog/filters';
 import { dedupeSearchResults } from '@/lib/catalog/unifier';
 import { createLogger, getRequestId } from '@/lib/logger';
 import { bootstrapTmdbConfig, tmdbFetch } from '@/lib/tmdb/client';
@@ -43,7 +44,9 @@ async function discoverTmdb(
   mediaType: 'movie' | 'tv',
   genreId: number | undefined,
   sort: DiscoverSort,
-  page: number
+  page: number,
+  country: CountryFilterId,
+  minRating: number | undefined
 ) {
   const params: Record<string, string> = {
     language: 'en-US',
@@ -51,8 +54,10 @@ async function discoverTmdb(
     sort_by: tmdbSort(sort, mediaType),
   };
   if (genreId) params.with_genres = String(genreId);
+  if (country !== 'all') params.with_origin_country = country;
+  if (minRating) params['vote_average.gte'] = String(minRating);
 
-  if (sort === 'top-rated') params['vote_count.gte'] = mediaType === 'movie' ? '200' : '50';
+  if (sort === 'top-rated' || minRating) params['vote_count.gte'] = mediaType === 'movie' ? '200' : '50';
 
   const data = await tmdbFetch<TmdbListResponse<TmdbMovieResult>>(`discover/${mediaType}`, params);
   return {
@@ -65,7 +70,8 @@ async function discoverAnime(
   genre: string | undefined,
   sort: DiscoverSort,
   page: number,
-  isAdult: boolean
+  isAdult: boolean,
+  minRating: number | undefined
 ) {
   const data = await anilistQuery<AniListPageResponse>('discoverAnime', {
     page,
@@ -73,6 +79,7 @@ async function discoverAnime(
     isAdult,
     genreIn: genre ? [genre] : undefined,
     sort: anilistSort(sort),
+    scoreGreater: minRating ? Math.max(0, Math.round(minRating * 10) - 1) : undefined,
   });
 
   return {
@@ -89,6 +96,9 @@ export async function GET(req: NextRequest) {
   const page = parsePage(req.nextUrl.searchParams.get('page'));
   const genreParam = req.nextUrl.searchParams.get('genre');
   const genre = getCatalogGenre(genreParam);
+  const country = getCountryFilter(req.nextUrl.searchParams.get('country'))?.id ?? 'all';
+  const rating = getRatingFilter(req.nextUrl.searchParams.get('rating'));
+  const minRating = rating?.min;
   const includeAdult = req.nextUrl.searchParams.get('adult') === 'true';
 
   if (genreParam && !genre) {
@@ -97,20 +107,20 @@ export async function GET(req: NextRequest) {
 
   try {
     const includeTmdb = source !== 'anilist';
-    const includeAnime = source !== 'tmdb';
+    const includeAnime = source !== 'tmdb' && country === 'all';
     if (includeTmdb) await bootstrapTmdbConfig();
 
     const tasks: Promise<{ items: MediaItem[]; hasMore: boolean }>[] = [];
     if (includeTmdb) {
       if (!genreParam || genre?.tmdbMovieId) {
-        tasks.push(discoverTmdb('movie', genre?.tmdbMovieId, sort, page));
+        tasks.push(discoverTmdb('movie', genre?.tmdbMovieId, sort, page, country, minRating));
       }
       if (!genreParam || genre?.tmdbTvId) {
-        tasks.push(discoverTmdb('tv', genre?.tmdbTvId, sort, page));
+        tasks.push(discoverTmdb('tv', genre?.tmdbTvId, sort, page, country, minRating));
       }
     }
     if (includeAnime && (!genreParam || genre?.anilistGenre)) {
-      tasks.push(discoverAnime(genre?.anilistGenre, sort, page, includeAdult));
+      tasks.push(discoverAnime(genre?.anilistGenre, sort, page, includeAdult, minRating));
     }
 
     const settled = await Promise.allSettled(tasks);
@@ -134,6 +144,8 @@ export async function GET(req: NextRequest) {
       genre: genre?.id ?? 'all',
       source,
       sort,
+      country,
+      rating: rating?.id ?? 'all',
       page,
       count: items.length,
       failedSources: failed.length,

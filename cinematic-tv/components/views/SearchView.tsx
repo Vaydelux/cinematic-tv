@@ -8,6 +8,7 @@ import { fetchAnilist, fetchTmdb } from '@/hooks/useCatalogQuery';
 import { mapTmdbToMediaItem } from '@/lib/tmdb/mappers';
 import { mapAnilistToMediaItem } from '@/lib/anilist/mappers';
 import { dedupeSearchResults } from '@/lib/catalog/unifier';
+import { COUNTRY_FILTERS, RATING_FILTERS, getRatingFilter, type CountryFilterId, type RatingFilterId } from '@/lib/catalog/filters';
 import { CATALOG_GENRES, getCatalogGenre } from '@/lib/catalog/genres';
 import { getUserSettings } from '@/lib/user-settings';
 import type { MediaItem } from '@/lib/types';
@@ -35,6 +36,8 @@ export function SearchView() {
   const [sourceFilter, setSourceFilter] = useState<'all' | 'tmdb' | 'anilist'>(
     settings.contentSource
   );
+  const [countryFilter, setCountryFilter] = useState<CountryFilterId>('all');
+  const [ratingFilter, setRatingFilter] = useState<RatingFilterId>('all');
   const [results, setResults] = useState<MediaItem[]>([]);
   const [defaultItems, setDefaultItems] = useState<MediaItem[]>([]);
   const [defaultPage, setDefaultPage] = useState(1);
@@ -52,7 +55,10 @@ export function SearchView() {
   const visibleItems = (showingSearchResults ? results : defaultItems).filter(
     (movie) => {
       const genre = getCatalogGenre(selectedGenre);
-      return !genre || movie.genres?.includes(genre.name) || movie.genres?.includes(genre.anilistGenre ?? '');
+      const minRating = getRatingFilter(ratingFilter)?.min;
+      const matchesGenre = !genre || movie.genres?.includes(genre.name) || movie.genres?.includes(genre.anilistGenre ?? '');
+      const matchesRating = !minRating || (movie.voteAverage ?? 0) >= minRating;
+      return matchesGenre && matchesRating;
     }
   );
 
@@ -107,6 +113,8 @@ export function SearchView() {
         source: sourceFilter,
         sort: 'popular',
         adult: String(settings.showAdult),
+        country: countryFilter,
+        rating: ratingFilter,
       });
       if (selectedGenre !== 'all') qs.set('genre', selectedGenre);
       const res = await fetch(`/api/discover?${qs}`);
@@ -124,7 +132,7 @@ export function SearchView() {
     } finally {
       setDefaultLoading(false);
     }
-  }, [selectedGenre, sourceFilter, settings.showAdult]);
+  }, [countryFilter, ratingFilter, selectedGenre, sourceFilter, settings.showAdult]);
 
   const loadMoreDefaultItems = useCallback(async () => {
     if (defaultLoading || defaultLoadingMore || !defaultHasMore) return;
@@ -138,6 +146,8 @@ export function SearchView() {
         sort: 'popular',
         page: String(nextPage),
         adult: String(settings.showAdult),
+        country: countryFilter,
+        rating: ratingFilter,
       });
       if (selectedGenre !== 'all') qs.set('genre', selectedGenre);
       const res = await fetch(`/api/discover?${qs}`);
@@ -159,6 +169,8 @@ export function SearchView() {
     defaultLoading,
     defaultLoadingMore,
     defaultPage,
+    countryFilter,
+    ratingFilter,
     selectedGenre,
     sourceFilter,
     settings.showAdult,
@@ -200,6 +212,8 @@ export function SearchView() {
       if (genre) {
         filtered = filtered.filter((m) => m.genres?.includes(genre.name) || m.genres?.includes(genre.anilistGenre ?? ''));
       }
+      const minRating = getRatingFilter(ratingFilter)?.min;
+      if (minRating) filtered = filtered.filter((m) => (m.voteAverage ?? 0) >= minRating);
       setResults(filtered);
     } catch (error) {
       setResults([]);
@@ -207,7 +221,11 @@ export function SearchView() {
     } finally {
       setLoading(false);
     }
-  }, [sourceFilter, selectedGenre, settings.showAdult]);
+  }, [sourceFilter, selectedGenre, ratingFilter, settings.showAdult]);
+
+  useEffect(() => {
+    if (sourceFilter === 'anilist' && countryFilter !== 'all') setCountryFilter('all');
+  }, [countryFilter, sourceFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => doSearch(searchTerm), 300);
@@ -288,18 +306,45 @@ export function SearchView() {
           ))}
         </div>
 
-        <div className="mt-2 flex min-w-0 flex-wrap gap-2">
-          {[{ id: 'all', name: 'All' }, ...CATALOG_GENRES].map((genre) => (
-            <button
-              key={genre.id}
-              onClick={() => setSelectedGenre(genre.id)}
-              className={`shrink-0 px-3 py-2 rounded-md whitespace-nowrap text-xs font-bold uppercase tracking-wide transition ${
-                selectedGenre === genre.id ? 'bg-white text-black' : 'bg-white/[0.06] text-on-surface-variant hover:bg-white/10'
-              }`}
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <label className="min-w-0">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-on-surface-variant">Genre</span>
+            <select
+              value={selectedGenre}
+              onChange={(event) => setSelectedGenre(event.target.value)}
+              className="w-full rounded-md border border-white/10 bg-surface px-3 py-3 text-sm font-medium text-on-surface outline-none transition focus:border-primary"
             >
-              {genre.name}
-            </button>
-          ))}
+              <option value="all">All genres</option>
+              {CATALOG_GENRES.map((genre) => (
+                <option key={genre.id} value={genre.id}>{genre.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="min-w-0">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-on-surface-variant">Country</span>
+            <select
+              value={countryFilter}
+              onChange={(event) => setCountryFilter(event.target.value as CountryFilterId)}
+              disabled={sourceFilter === 'anilist'}
+              className="w-full rounded-md border border-white/10 bg-surface px-3 py-3 text-sm font-medium text-on-surface outline-none transition focus:border-primary disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              {COUNTRY_FILTERS.map((country) => (
+                <option key={country.id} value={country.id}>{country.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="min-w-0">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-on-surface-variant">Rating</span>
+            <select
+              value={ratingFilter}
+              onChange={(event) => setRatingFilter(event.target.value as RatingFilterId)}
+              className="w-full rounded-md border border-white/10 bg-surface px-3 py-3 text-sm font-medium text-on-surface outline-none transition focus:border-primary"
+            >
+              {RATING_FILTERS.map((rating) => (
+                <option key={rating.id} value={rating.id}>{rating.label}</option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 

@@ -50,10 +50,10 @@ query ($page: Int, $perPage: Int, $isAdult: Boolean) {
 }`;
 
 export const DISCOVER_ANIME = `
-query ($page: Int, $perPage: Int, $isAdult: Boolean, $genreIn: [String], $sort: [MediaSort]) {
+query ($page: Int, $perPage: Int, $isAdult: Boolean, $genreIn: [String], $sort: [MediaSort], $scoreGreater: Int) {
   Page(page: $page, perPage: $perPage) {
     pageInfo { hasNextPage currentPage }
-    media(type: ANIME, genre_in: $genreIn, sort: $sort, isAdult: $isAdult) {
+    media(type: ANIME, genre_in: $genreIn, sort: $sort, isAdult: $isAdult, averageScore_greater: $scoreGreater) {
       ${MEDIA_CARD_FIELDS}
     }
   }

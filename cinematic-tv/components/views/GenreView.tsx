@@ -5,6 +5,7 @@ import { motion, type Variants } from 'motion/react';
 import { Film, Loader2, Tags } from 'lucide-react';
 import { MovieCard } from '@/components/MovieCard';
 import { CATALOG_GENRES } from '@/lib/catalog/genres';
+import { COUNTRY_FILTERS, RATING_FILTERS, type CountryFilterId, type RatingFilterId } from '@/lib/catalog/filters';
 import { dedupeSearchResults } from '@/lib/catalog/unifier';
 import { getUserSettings } from '@/lib/user-settings';
 import type { MediaItem } from '@/lib/types';
@@ -36,6 +37,8 @@ export function GenreView() {
   const [selectedGenre, setSelectedGenre] = useState(CATALOG_GENRES[0]?.id ?? 'action');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'tmdb' | 'anilist'>(settings.contentSource);
   const [sort, setSort] = useState<DiscoverSort>('popular');
+  const [countryFilter, setCountryFilter] = useState<CountryFilterId>('all');
+  const [ratingFilter, setRatingFilter] = useState<RatingFilterId>('all');
   const [items, setItems] = useState<MediaItem[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -56,6 +59,8 @@ export function GenreView() {
           sort,
           page: String(nextPage),
           adult: String(settings.showAdult),
+          country: countryFilter,
+          rating: ratingFilter,
         });
         const res = await fetch(`/api/discover?${qs}`);
         if (!res.ok) {
@@ -74,7 +79,7 @@ export function GenreView() {
         setLoadingMore(false);
       }
     },
-    [selectedGenre, settings.showAdult, sort, sourceFilter]
+    [countryFilter, ratingFilter, selectedGenre, settings.showAdult, sort, sourceFilter]
   );
 
   const loadMore = useCallback(() => {
@@ -85,6 +90,10 @@ export function GenreView() {
   useEffect(() => {
     fetchPage(1, false);
   }, [fetchPage]);
+
+  useEffect(() => {
+    if (sourceFilter === 'anilist' && countryFilter !== 'all') setCountryFilter('all');
+  }, [countryFilter, sourceFilter]);
 
   useEffect(() => {
     const sentinel = loadMoreRef.current;
@@ -143,19 +152,44 @@ export function GenreView() {
           ))}
         </div>
 
-        <div className="mt-3 flex min-w-0 flex-wrap gap-2">
-          {CATALOG_GENRES.map((genre) => (
-            <button
-              key={genre.id}
-              type="button"
-              onClick={() => setSelectedGenre(genre.id)}
-              className={`shrink-0 rounded-md px-3 py-2 text-xs font-bold uppercase tracking-wide transition ${
-                selectedGenre === genre.id ? 'bg-primary text-primary-contrast' : 'bg-white/[0.06] text-on-surface-variant hover:bg-white/10'
-              }`}
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <label className="min-w-0">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-on-surface-variant">Genre</span>
+            <select
+              value={selectedGenre}
+              onChange={(event) => setSelectedGenre(event.target.value)}
+              className="w-full rounded-md border border-white/10 bg-surface px-3 py-3 text-sm font-medium text-on-surface outline-none transition focus:border-primary"
             >
-              {genre.name}
-            </button>
-          ))}
+              {CATALOG_GENRES.map((genre) => (
+                <option key={genre.id} value={genre.id}>{genre.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="min-w-0">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-on-surface-variant">Country</span>
+            <select
+              value={countryFilter}
+              onChange={(event) => setCountryFilter(event.target.value as CountryFilterId)}
+              disabled={sourceFilter === 'anilist'}
+              className="w-full rounded-md border border-white/10 bg-surface px-3 py-3 text-sm font-medium text-on-surface outline-none transition focus:border-primary disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              {COUNTRY_FILTERS.map((country) => (
+                <option key={country.id} value={country.id}>{country.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="min-w-0">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-on-surface-variant">Rating</span>
+            <select
+              value={ratingFilter}
+              onChange={(event) => setRatingFilter(event.target.value as RatingFilterId)}
+              className="w-full rounded-md border border-white/10 bg-surface px-3 py-3 text-sm font-medium text-on-surface outline-none transition focus:border-primary"
+            >
+              {RATING_FILTERS.map((rating) => (
+                <option key={rating.id} value={rating.id}>{rating.label}</option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
